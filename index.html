@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flexible Image Renamer</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
+  <style>
+    .ghost {
+      opacity: 0.5;
+      background: #f3f4f6;
+      border: 2px dashed #d1d5db;
+    }
+
+    .drag-over {
+      border-color: #3b82f6;
+      background-color: #eff6ff;
+    }
+  </style>
+</head>
+
+<body class="bg-gray-100 min-h-screen p-8 text-gray-800 font-sans relative">
+
+  <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-6">
+
+    <!-- Header -->
+    <header class="mb-6 border-b pb-4 flex justify-between items-start">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Flexible Image Renamer</h1>
+        <p class="text-gray-600">設定に基づいて画像をリネームし、ZIPで一括ダウンロードします。</p>
+      </div>
+      <!-- Auth & Plan Badge -->
+      <div class="flex flex-col items-end gap-2">
+        <!-- Guest State (shown when not logged in) -->
+        <div id="guestContainer" class="flex items-center gap-3">
+          <div class="text-right">
+            <p class="text-xs text-gray-500">ゲスト利用中</p>
+            <p class="text-sm">残り: <span id="guestRemaining" class="font-bold text-orange-500">20</span>/20枚</p>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="openLoginModal()"
+              class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-1 px-3 rounded text-sm transition">ログイン</button>
+            <button onclick="openSignupModal()"
+              class="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white font-bold py-1 px-4 rounded text-sm transition shadow-lg">🚀
+              無制限へ</button>
+          </div>
+        </div>
+        <!-- Logged-in State (shown when logged in) -->
+        <div id="authContainer" class="hidden flex items-center gap-2">
+          <span id="userEmail" class="text-sm text-gray-600 truncate max-w-[150px]"></span>
+          <button onclick="signOut()" class="text-xs text-gray-500 hover:text-red-500 underline">ログアウト</button>
+        </div>
+        <div id="planBadge" class="flex flex-col items-end hidden">
+          <span id="planName" class="bg-gray-200 text-gray-700 font-bold px-3 py-1 rounded-full text-sm">Free
+            Plan</span>
+          <p id="usageText" class="text-xs text-gray-500 mt-1">本日利用数: -/20</p>
+          <a href="#" onclick="openPremiumModal()" class="text-xs text-blue-500 hover:underline mt-1">プラン変更</a>
+        </div>
+      </div>
+    </header>
+
+    <!-- User Guide (New) -->
+    <section class="mb-8 bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r text-sm text-blue-900">
+      <h3 class="font-bold text-lg mb-2 flex items-center">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        ご利用ガイド
+      </h3>
+      <ol class="list-decimal list-inside space-y-1 ml-1 mb-4">
+        <li><span class="font-semibold">リネーム設定</span>を入力します（先頭・末尾文字、連番のルールなど）。</li>
+        <li>画像を <span class="font-semibold">ドロップゾーン</span> にドラッグ＆ドロップしてアップロードします。</li>
+        <li>画像の順番は、<span class="font-semibold">ドラッグ</span> または <span class="font-semibold">No.の手入力</span> で変更できます。</li>
+        <li>個別に名前を指定したい場合は、画像右側の「手入力」を選択して入力します。</li>
+        <li><span class="font-semibold">「ZIP作成＆ダウンロード」</span>ボタンを押して完了です。</li>
+      </ol>
+      <div class="pt-4 border-t border-blue-200 text-xs text-blue-800">
+        <p class="mb-1"><span class="font-bold">対応拡張子:</span> .jpg, .jpeg, .png, .gif, .webp</p>
+        <p><span class="font-bold">推奨環境:</span> Google Chrome, Edge, Firefox, Safari (最新版)</p>
+      </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section id="pricing" class="mb-8">
+      <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
+        <svg class="w-5 h-5 mr-2 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+          <path
+            d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+        </svg>
+        料金プラン
+      </h3>
+      <div class="grid md:grid-cols-2 gap-6">
+        <!-- Free Plan -->
+        <div class="bg-white border border-gray-200 rounded-xl p-6 relative">
+          <h4 class="text-xl font-bold text-gray-800 mb-2">Free / ゲストプラン</h4>
+          <p class="text-3xl font-bold text-gray-900 mb-4">¥0<span class="text-sm font-normal text-gray-500"> / 月</span>
+          </p>
+          <ul class="text-sm text-gray-600 space-y-2 mb-6">
+            <li class="flex items-center"><svg class="w-4 h-4 mr-2 text-green-500" fill="none" stroke="currentColor"
+                viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>1日20枚まで利用可能</li>
+            <li class="flex items-center"><svg class="w-4 h-4 mr-2 text-green-500" fill="none" stroke="currentColor"
+                viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>基本的なリネーム・ZIP化</li>
+            <li class="flex items-center"><svg class="w-4 h-4 mr-2 text-gray-300" fill="none" stroke="currentColor"
+                viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg><span class="text-gray-400">回数制限あり</span></li>
+          </ul>
+          <button id="freePlanBtn" onclick="openLoginModal()"
+            class="w-full py-2 px-4 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition">
+            ログインして使う
+          </button>
+        </div>
+        <!-- Premium Plan -->
+        <div
+          class="bg-gradient-to-br from-blue-50 to-purple-50 border-2 border-blue-400 rounded-xl p-6 relative shadow-lg">
+          <span
+            class="absolute -top-3 left-4 bg-gradient-to-r from-orange-500 to-pink-500 text-white text-xs font-bold px-3 py-1 rounded-full">✨
+            おすすめ</span>
+          <h4 class="text-xl font-bold text-gray-800 mb-2 mt-2">Premium Plan</h4>
+          <p class="text-3xl font-bold text-blue-600 mb-4">¥990<span class="text-sm font-normal text-gray-500"> / 月
+              (税込)</span></p>
+          <ul class="text-sm text-gray-700 space-y-2 mb-6">
+            <li class="flex items-center"><svg class="w-4 h-4 mr-2 text-blue-500" fill="none" stroke="currentColor"
+                viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg><span class="font-bold text-blue-700">回数無制限</span></li>
+            <li class="flex items-center"><svg class="w-4 h-4 mr-2 text-blue-500" fill="none" stroke="currentColor"
+                viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>業務効率化に最適</li>
+            <li class="flex items-center"><svg class="w-4 h-4 mr-2 text-blue-500" fill="none" stroke="currentColor"
+                viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>優先サポート</li>
+          </ul>
+          <button id="premiumCTA" onclick="handlePremiumCTA()"
+            class="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg font-bold shadow-lg transition transform hover:scale-105">
+            🚀 月額990円で無制限にする
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Settings Section -->
+    <section class="mb-8 bg-gray-50 p-6 rounded-lg border border-gray-200">
+      <h3 class="text-lg font-bold text-gray-800 mb-4">リネーム設定</h3>
+      <div class="grid gap-6 md:grid-cols-4 items-end">
+
+        <!-- Prefix -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">先頭文字列 (固定)</label>
+          <input type="text" id="prefix" placeholder="例: IMG_"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+            oninput="updateFilenames()">
+        </div>
+
+        <!-- Sequence Type -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">連番タイプ</label>
+          <select id="seqType"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+            onchange="updateFilenames(); toggleMinDigits();">
+            <option value="number">数字 (1, 2, ...)</option>
+            <option value="alphabet-upper">英字 大文字 (A, B...)</option>
+            <option value="alphabet-lower">英字 小文字 (a, b...)</option>
+          </select>
+        </div>
+
+        <!-- Min Digits -->
+        <div id="minDigitsContainer">
+          <label class="block text-sm font-medium text-gray-700 mb-1">最小桁数 (1-12)</label>
+          <input type="number" id="minDigits" value="3" min="1" max="12"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+            oninput="updateFilenames()">
+        </div>
+
+        <!-- Suffix -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">末尾文字列 (固定)</label>
+          <input type="text" id="suffix" placeholder="例: _v1"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+            oninput="updateFilenames()">
+        </div>
+
+      </div>
+
+      <!-- Output Preview -->
+      <div class="mt-6 pt-4 border-t border-gray-200">
+        <p class="text-sm font-medium text-gray-700 mb-2">出力ファイル名プレビュー:</p>
+        <div class="bg-white p-3 rounded-lg border border-gray-300 font-mono text-sm text-gray-800">
+          <span class="text-gray-400">(例)</span> <span id="previewFilename">IMG_001_v1.jpg</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Drop Zone -->
+    <section class="mb-8">
+      <div id="dropZone"
+        class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-blue-400 hover:bg-gray-50 transition flex flex-col items-center justify-center h-32">
+        <p class="text-gray-500 font-medium">画像ファイルをここにドラッグ＆ドロップ</p>
+        <input type="file" id="fileInput" class="hidden" multiple accept="image/*">
+      </div>
+    </section>
+
+    <!-- Management Section -->
+    <section class="mb-8">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-bold text-gray-800">画像リスト <span id="imageCount"
+            class="text-sm font-normal text-gray-500 ml-2">(0枚)</span></h2>
+        <button onclick="clearAll()"
+          class="text-red-500 hover:text-red-700 text-sm font-medium hover:underline">全削除</button>
+      </div>
+
+      <div id="imageList" class="grid grid-cols-1 gap-4">
+        <!-- Images will be inserted here -->
+      </div>
+
+      <div id="emptyState" class="text-center py-12 bg-gray-50 rounded-lg border border-gray-200">
+        <p class="text-gray-400">画像がありません</p>
+      </div>
+    </section>
+
+    <!-- Output Section -->
+    <section class="border-t pt-6">
+      <div class="flex flex-col items-end gap-2">
+        <button onclick="downloadZip()"
+          class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg shadow-lg transform active:scale-95 transition flex items-center">
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+          </svg>
+          ZIP作成＆ダウンロード
+        </button>
+        <!-- CTA Link (changes based on login state) -->
+        <p id="ctaLink" class="text-xs text-gray-500">
+          <a href="#" onclick="openLoginModal()" class="text-blue-500 hover:underline">ログインすると履歴が保存されます</a>
+        </p>
+      </div>
+    </section>
+
+    <!-- Auth Modal -->
+    <!-- Login Modal -->
+    <div id="loginModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+      <div class="bg-white rounded-xl shadow-2xl p-8 max-w-sm w-full mx-4 relative max-h-[90vh] overflow-y-auto">
+        <button onclick="closeLoginModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+        <h2 class="text-2xl font-bold text-gray-900 mb-6 text-center">ログイン</h2>
+        <div id="loginDuplicateAlert"
+          class="hidden bg-red-50 border border-red-200 p-4 rounded-lg mb-6 flex items-center gap-3">
+          <span class="text-2xl">⚠️</span>
+          <p class="text-red-800 text-sm font-bold leading-relaxed">このメールアドレスは既に登録されています。<br>パスワードを入力してログインしてください。</p>
+        </div>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">メールアドレス</label>
+            <input type="email" id="loginEmail"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">パスワード</label>
+            <input type="password" id="loginPassword"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+          <div class="h-captcha flex justify-center my-6 min-h-[78px]"
+            data-sitekey="7832e338-aed6-413c-9aba-7fa6ef465c64"></div>
+          <div class="pt-2">
+            <button onclick="signIn()"
+              class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg transition">ログイン</button>
+          </div>
+          <div class="relative flex py-2 items-center">
+            <div class="flex-grow border-t border-gray-200"></div>
+            <span class="flex-shrink mx-4 text-gray-400 text-xs">または</span>
+            <div class="flex-grow border-t border-gray-200"></div>
+          </div>
+          <button onclick="switchToSignup()"
+            class="w-full bg-white hover:bg-green-50 text-green-600 border-2 border-green-500 font-bold py-3 rounded-lg transition flex items-center justify-center gap-2">
+            <span>🚀</span> 新規会員登録はこちら（無料）
+          </button>
+          <div class="text-center pt-2">
+            <button onclick="resetPassword()" class="text-xs text-blue-500 hover:underline">パスワードをお忘れですか？</button>
+          </div>
+          <p id="loginMessage" class="text-xs text-red-500 text-center min-h-[1.5em] mt-4"></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Signup Modal -->
+    <div id="signupModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+      <div class="bg-white rounded-xl shadow-2xl p-8 max-w-sm w-full mx-4 relative max-h-[90vh] overflow-y-auto">
+        <button onclick="closeSignupModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+        <h2 class="text-2xl font-bold text-gray-900 mb-6 text-center">新規登録</h2>
+        <div id="signupLimitAlert"
+          class="hidden bg-red-50 border border-red-200 p-4 rounded-lg mb-4 flex items-center gap-3">
+          <span class="text-2xl">⚠️</span>
+          <p class="text-red-800 text-sm font-bold">20枚以上を一括変換するには、会員登録（無料）が必要です。</p>
+        </div>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">メールアドレス</label>
+            <input type="email" id="signupEmail"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">パスワード</label>
+            <input type="password" id="signupPassword"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500">
+            <ul class="text-xs text-gray-500 mt-2 space-y-1 list-disc list-inside">
+              <li>8文字以上</li>
+              <li>英字（大文字・小文字）を含む</li>
+              <li>数字を含む</li>
+            </ul>
+          </div>
+          <div class="h-captcha flex justify-center my-6 min-h-[78px]"
+            data-sitekey="7832e338-aed6-413c-9aba-7fa6ef465c64"></div>
+          <div class="pt-2">
+            <button onclick="signUp()"
+              class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 rounded-lg transition">登録する</button>
+          </div>
+          <div class="relative flex py-2 items-center">
+            <div class="flex-grow border-t border-gray-200"></div>
+            <div class="flex-grow border-t border-gray-200"></div>
+          </div>
+          <button onclick="switchToLogin()"
+            class="w-full bg-gray-50 hover:bg-gray-100 text-gray-600 font-bold py-3 rounded-lg transition flex items-center justify-center gap-2">
+            <span>🔑</span> すでにアカウントをお持ちの方はログイン
+          </button>
+          <p id="signupMessage" class="text-xs text-red-500 text-center min-h-[1.5em] mt-4"></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Premium Modal -->
+    <div id="premiumModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+      <div class="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full mx-4 relative transform transition-all scale-100">
+        <button onclick="closePremiumModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+
+        <div class="text-center">
+          <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z">
+              </path>
+            </svg>
+          </div>
+          <h2 class="text-2xl font-bold text-gray-900 mb-2">Premium Plan</h2>
+          <p id="premiumMessage" class="text-sm text-red-600 mb-4 font-bold"></p>
+          <p class="text-gray-600 mb-6">無料プランは1日20枚までです。<br>制限なしで利用するにはアップグレードが必要です。</p>
+
+          <div class="bg-gray-50 p-4 rounded-lg mb-6">
+            <p class="text-3xl font-bold text-gray-800">¥990<span class="text-sm text-gray-500 font-normal"> / 月
+                (税込)</span></p>
+          </div>
+
+          <button onclick="subscribeMock()"
+            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg shadow-lg mb-3">
+            今すぐ登録する
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Template for List Item -->
+  <template id="imageItemTemplate">
+    <div
+      class="image-item bg-white border border-gray-200 rounded-lg p-4 shadow-sm flex items-center gap-4 hover:shadow-md transition group">
+
+      <!-- Drag Handle & Sort Input -->
+      <div class="flex flex-col items-center gap-2 mr-2">
+        <div class="cursor-move text-gray-300 hover:text-gray-500 p-1">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"></path>
+          </svg>
+        </div>
+        <!-- Manual Sort Input -->
+        <input type="number"
+          class="sort-input w-12 text-center text-sm border border-gray-300 rounded p-1 focus:ring-2 focus:ring-blue-500 outline-none"
+          value="1" onchange="manualSort(this)">
+      </div>
+
+      <div class="w-20 h-20 bg-gray-100 rounded-md overflow-hidden flex-shrink-0 border border-gray-200 relative">
+        <img src="" alt="Thumbnail" class="w-full h-full object-contain">
+      </div>
+
+      <div class="flex-grow grid md:grid-cols-2 gap-4">
+        <div>
+          <div class="flex items-center gap-2 mb-2">
+            <label class="inline-flex items-center cursor-pointer">
+              <input type="radio" name="mode-{id}" value="default" class="sr-only peer" checked
+                onchange="updateRowMode(this)">
+              <div
+                class="px-3 py-1 rounded-full text-xs font-medium border border-blue-500 text-blue-600 peer-checked:bg-blue-500 peer-checked:text-white transition">
+                連番</div>
+            </label>
+            <label class="inline-flex items-center cursor-pointer">
+              <input type="radio" name="mode-{id}" value="custom" class="sr-only peer" onchange="updateRowMode(this)">
+              <div
+                class="px-3 py-1 rounded-full text-xs font-medium border border-purple-500 text-purple-600 peer-checked:bg-purple-500 peer-checked:text-white transition">
+                手入力</div>
+            </label>
+          </div>
+
+          <div class="custom-input-container hidden">
+            <input type="text" placeholder="手入力テキスト"
+              class="w-full text-sm px-2 py-1 border border-purple-200 rounded focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none"
+              oninput="updateFilenames()">
+            <p class="text-xs text-gray-400 mt-1">※ 先頭・末尾文字列は付与されます</p>
+          </div>
+        </div>
+
+        <div class="flex flex-col justify-center">
+          <p class="text-xs text-gray-400 mb-1">変更後のファイル名:</p>
+          <p class="filename-preview font-mono text-sm font-bold text-gray-800 break-all select-all">pending...</p>
+          <p class="text-xs text-gray-400 mt-1 truncate original-name"></p>
+        </div>
+      </div>
+
+      <button onclick="removeImage(this)"
+        class="p-2 text-gray-400 hover:text-red-500 rounded-full hover:bg-red-50 transition">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+          </path>
+        </svg>
+      </button>
+    </div>
+  </template>
+
+  <script>
+    let imageData = [];
+    const listContainer = document.getElementById('imageList');
+    let currentUser = null;
+    let currentUsage = { daily_count: 0, is_premium: false };
+
+    // --- Supabase Configuration ---
+    const supabaseUrl = 'https://dewwtecteezjvpqoqirv.supabase.co';
+    const supabaseKey = 'sb_publishable_0UU6JBGvV9c8bzqbQW-_uw_aPbDcPYK';
+    // Initialize Supabase Client
+    // Note: using checking if window.supabase exists, for robustness
+    let sb = null;
+    if (window.supabase) {
+      sb = window.supabase.createClient(supabaseUrl, supabaseKey);
+    } else {
+      console.error('Supabase library not loaded');
+      alert('システムエラー: Supabaseライブラリの読み込みに失敗しました。');
+    }
+
+    const FREE_LIMIT = 20;
+
+    // --- Auth Logic ---
+    async function initSupabase() {
+      if (!sb) return;
+
+      // Check current session
+      const { data } = await sb.auth.getSession();
+      handleSession(data.session);
+
+      // Listen for changes
+      sb.auth.onAuthStateChange((event, session) => {
+        handleSession(session);
+      });
+    }
+
+    async function handleSession(session) {
+      currentUser = session?.user || null;
+      const guestContainer = document.getElementById('guestContainer');
+      const authContainer = document.getElementById('authContainer');
+      const planBadge = document.getElementById('planBadge');
+
+      // Close all modals on session change
+      closeLoginModal();
+      closeSignupModal();
+
+      if (currentUser) {
+        // Logged In - Hide guest, show auth
+        guestContainer.classList.add('hidden');
+        authContainer.classList.remove('hidden');
+        document.getElementById('userEmail').textContent = currentUser.email;
+        planBadge.classList.remove('hidden');
+        updatePricingUI(); // Immediate update
+        await fetchUsage(); // Get DB data
+        updateCTALink();
+
+        // 3. Post-login premium promotion
+        if (sessionStorage.getItem('pending_action') === 'premium_promote') {
+          if (currentUsage && !currentUsage.is_premium) {
+            openPremiumModal();
+            document.getElementById('premiumMessage').textContent = '20枚以上の変換を続けるには、プレミアムプランへのアップグレードをご検討ください。';
+          }
+          sessionStorage.removeItem('pending_action');
+        }
+      } else {
+        // Guest Mode - Show guest, hide auth
+        guestContainer.classList.remove('hidden');
+        authContainer.classList.add('hidden');
+        planBadge.classList.add('hidden');
+        updateGuestUsageUI();
+        updateCTALink();
+        updatePricingUI();
+      }
+    }
+
+    // --- Guest Usage (localStorage) ---
+    function getGuestUsageKey() {
+      const today = new Date().toISOString().split('T')[0];
+      return `anon_usage_${today}`;
+    }
+
+    function getGuestUsage() {
+      const key = getGuestUsageKey();
+      return parseInt(localStorage.getItem(key) || '0', 10);
+    }
+
+    function setGuestUsage(count) {
+      const key = getGuestUsageKey();
+      localStorage.setItem(key, count.toString());
+      updateGuestUsageUI();
+    }
+
+    function updateGuestUsageUI() {
+      const used = getGuestUsage();
+      const remaining = Math.max(0, FREE_LIMIT - used);
+      const el = document.getElementById('guestRemaining');
+      if (el) {
+        el.textContent = remaining;
+        // Make it red if low
+        if (remaining <= 5) {
+          el.className = 'font-bold text-red-500';
+        } else if (remaining <= 10) {
+          el.className = 'font-bold text-orange-500';
+        } else {
+          el.className = 'font-bold text-green-500';
+        }
+      }
+    }
+
+    function updateCTALink() {
+      const ctaEl = document.getElementById('ctaLink');
+      if (!ctaEl) return;
+      if (currentUser) {
+        if (currentUsage.is_premium) {
+          ctaEl.innerHTML = '<span class="text-green-500">✓ Premiumプランをご利用中</span>';
+        } else {
+          ctaEl.innerHTML = '<a href="#" onclick="openPremiumModal()" class="text-blue-500 hover:underline">無制限プランで制限を解除 →</a>';
+        }
+      } else {
+        ctaEl.innerHTML = '<a href="#" onclick="openLoginModal()" class="text-blue-500 hover:underline">ログインすると履歴が保存されます</a>';
+      }
+    }
+
+    function handlePremiumCTA() {
+      if (currentUser) {
+        openPremiumModal();
+      } else {
+        openSignupModal();
+      }
+    }
+
+    // Modal Control
+    function openLoginModal() {
+      document.getElementById('loginModal').classList.remove('hidden');
+      document.getElementById('loginMessage').textContent = '';
+      if (typeof hcaptcha !== 'undefined') hcaptcha.reset();
+      const duplicateAlert = document.getElementById('loginDuplicateAlert');
+      if (duplicateAlert) duplicateAlert.classList.add('hidden');
+      closeSignupModal();
+    }
+
+    function closeLoginModal() {
+      document.getElementById('loginModal').classList.add('hidden');
+      if (typeof hcaptcha !== 'undefined') hcaptcha.reset();
+    }
+
+    function openSignupModal() {
+      document.getElementById('signupModal').classList.remove('hidden');
+      document.getElementById('signupMessage').textContent = '';
+      if (typeof hcaptcha !== 'undefined') hcaptcha.reset();
+      const limitAlert = document.getElementById('signupLimitAlert');
+      if (limitAlert) limitAlert.classList.add('hidden');
+      closeLoginModal();
+    }
+
+    function closeSignupModal() {
+      document.getElementById('signupModal').classList.add('hidden');
+      if (typeof hcaptcha !== 'undefined') hcaptcha.reset();
+    }
+
+    function switchToSignup() {
+      const duplicateAlert = document.getElementById('loginDuplicateAlert');
+      if (duplicateAlert) duplicateAlert.classList.add('hidden');
+      openSignupModal();
+    }
+
+    function switchToLogin() {
+      openLoginModal();
+    }
+
+    // Auth Actions
+    async function signIn() {
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+      const msg = document.getElementById('loginMessage');
+
+      if (!email || !password) {
+        msg.textContent = 'メールアドレスとパスワードを入力してください';
+        return;
+      }
+
+      const token = typeof hcaptcha !== 'undefined' ? hcaptcha.getResponse() : '';
+      if (!token) {
+        alert('「私はロボットではありません」にチェックを入れてください');
+        return;
+      }
+
+      msg.textContent = '処理中...';
+      const { data, error } = await sb.auth.signInWithPassword({
+        email,
+        password,
+        options: { captchaToken: token }
+      });
+
+      if (error) {
+        msg.textContent = 'ログインエラー: ' + error.message;
+        if (typeof hcaptcha !== 'undefined') hcaptcha.reset();
+      } else {
+        msg.textContent = '';
+        if (typeof hcaptcha !== 'undefined') hcaptcha.reset();
+      }
+    }
+
+    async function signUp() {
+      const email = document.getElementById('signupEmail').value;
+      const password = document.getElementById('signupPassword').value;
+      const msg = document.getElementById('signupMessage');
+
+      if (!email || !password) {
+        msg.textContent = 'メールアドレスとパスワードを入力してください';
+        return;
+      }
+
+      // Password validation
+      const hasMinLength = password.length >= 8;
+      const hasUppercase = /[A-Z]/.test(password);
+      const hasLowercase = /[a-z]/.test(password);
+      const hasNumber = /[0-9]/.test(password);
+
+      if (!hasMinLength || !hasUppercase || !hasLowercase || !hasNumber) {
+        let errors = [];
+        if (!hasMinLength) errors.push('8文字以上');
+        if (!hasUppercase || !hasLowercase) errors.push('英字（大文字・小文字）');
+        if (!hasNumber) errors.push('数字');
+        msg.textContent = `パスワードに以下が必要です: ${errors.join(', ')}`;
+        return;
+      }
+
+      const token = typeof hcaptcha !== 'undefined' ? hcaptcha.getResponse() : '';
+      if (!token) {
+        alert('「私はロボットではありません」にチェックを入れてください');
+        return;
+      }
+
+      msg.textContent = '登録処理中...';
+      const { data, error } = await sb.auth.signUp({
+        email,
+        password,
+        options: { captchaToken: token }
+      });
+
+      if (error) {
+        if (error.status === 422 || error.message.includes('already registered') || error.message.includes('already exists')) {
+          msg.textContent = '';
+          const signupEmail = document.getElementById('signupEmail').value;
+          switchToLogin();
+          document.getElementById('loginEmail').value = signupEmail;
+          const duplicateAlert = document.getElementById('loginDuplicateAlert');
+          if (duplicateAlert) duplicateAlert.classList.remove('hidden');
+          if (typeof hcaptcha !== 'undefined') hcaptcha.reset();
+        } else {
+          msg.textContent = '登録エラー: ' + error.message;
+          if (typeof hcaptcha !== 'undefined') hcaptcha.reset();
+        }
+      } else {
+        msg.textContent = '確認メールを送信しました。メール内のリンクをクリックしてください。';
+        if (typeof hcaptcha !== 'undefined') hcaptcha.reset();
+      }
+    }
+
+    async function resetPassword() {
+      const email = document.getElementById('loginEmail').value;
+      const msg = document.getElementById('loginMessage');
+
+      if (!email) {
+        msg.textContent = 'リセットするためには、メールアドレスを入力してください';
+        return;
+      }
+
+      msg.textContent = 'リセットメール送信中...';
+      const { data, error } = await sb.auth.resetPasswordForEmail(email);
+
+      if (error) {
+        msg.textContent = '送信エラー: ' + error.message;
+      } else {
+        msg.textContent = 'パスワードリセットメールを送信しました。';
+      }
+    }
+
+    async function signOut() {
+      const { error } = await sb.auth.signOut();
+      if (error) console.error('SignOut Error:', error);
+    }
+
+    // --- Usage DB Logic ---
+    async function fetchUsage() {
+      if (!currentUser || !sb) return;
+      const today = new Date().toISOString().split('T')[0];
+
+      // 1. Fetch record
+      let { data, error } = await sb
+        .from('user_usage')
+        .select('*')
+        .eq('id', currentUser.id)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Fetch Usage Error:', error);
+        alert('利用状況の取得に失敗しました。制限機能が正しく動作しない可能性があります。');
+      }
+
+      // 2. If no record, create default
+      if (!data) {
+        const { data: newData, error: insertError } = await sb
+          .from('user_usage')
+          .insert([{ id: currentUser.id, daily_count: 0, last_reset_date: today, is_premium: false }])
+          .select()
+          .single();
+
+        if (insertError) {
+          console.error('Insert Usage Error:', insertError);
+          alert('利用状況の初期化に失敗しました。ページを再読み込みしてください。');
+          return;
+        }
+        data = newData;
+      }
+
+      // 3. Check Daily Reset
+      if (data.last_reset_date !== today) {
+        // Update DB to reset
+        const { error: updateError } = await sb
+          .from('user_usage')
+          .update({ daily_count: 0, last_reset_date: today })
+          .eq('id', currentUser.id);
+
+        if (!updateError) {
+          data.daily_count = 0;
+          data.last_reset_date = today;
+        }
+      }
+
+      // 4. Sync guest usage to member account (prevent loophole)
+      const guestUsed = getGuestUsage();
+      if (guestUsed > 0) {
+        const newCount = data.daily_count + guestUsed;
+        const { error: syncError } = await sb
+          .from('user_usage')
+          .update({ daily_count: newCount })
+          .eq('id', currentUser.id);
+
+        if (!syncError) {
+          data.daily_count = newCount;
+          setGuestUsage(0); // Clear guest usage after sync
+          console.log(`Synced ${guestUsed} guest downloads to member account`);
+        } else {
+          console.error('Guest Sync Error:', syncError);
+        }
+      }
+
+      if (data) {
+        currentUsage = data;
+      }
+      updateHeaderUI();
+    }
+
+    async function incrementUsage(count) {
+      if (!currentUser || !sb) return;
+
+      // Optimistic update
+      currentUsage.daily_count += count;
+      updateHeaderUI();
+
+      // DB Update
+      const { error } = await sb
+        .from('user_usage')
+        .update({ daily_count: currentUsage.daily_count })
+        .eq('id', currentUser.id);
+
+      if (error) {
+        console.error('Increment Usage Error:', error);
+        alert('利用回数の更新に失敗しました。ネットワーク接続を確認してください。');
+        // Rollback UI
+        currentUsage.daily_count -= count;
+        updateHeaderUI();
+      }
+    }
+
+    function updateHeaderUI() {
+      const planName = document.getElementById('planName');
+      const usageText = document.getElementById('usageText');
+
+      if (currentUsage.is_premium) {
+        planName.textContent = 'Premium Plan';
+        planName.className = 'bg-yellow-100 text-yellow-800 font-bold px-3 py-1 rounded-full text-sm';
+        usageText.textContent = '無制限で利用可能';
+      } else {
+        planName.textContent = 'Free Plan';
+        planName.className = 'bg-gray-200 text-gray-700 font-bold px-3 py-1 rounded-full text-sm';
+        usageText.textContent = `本日利用数: ${currentUsage.daily_count}/${FREE_LIMIT}`;
+        if (currentUsage.daily_count >= FREE_LIMIT) {
+          usageText.classList.add('text-red-500', 'font-bold');
+        } else {
+          usageText.classList.remove('text-red-500', 'font-bold');
+        }
+      }
+      // Also update pricing section
+      updatePricingUI();
+      updateCTALink();
+    }
+
+    function updatePricingUI() {
+      const freeBtn = document.getElementById('freePlanBtn');
+      const premiumBtn = document.getElementById('premiumCTA');
+
+      if (!currentUser) {
+        // Guest mode
+        freeBtn.textContent = 'ログインして使う';
+        freeBtn.disabled = false;
+        freeBtn.onclick = openLoginModal;
+        freeBtn.className = 'w-full py-2 px-4 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition';
+
+        premiumBtn.textContent = '登録して無制限にする';
+        premiumBtn.disabled = false;
+        premiumBtn.onclick = () => openSignupModal();
+        premiumBtn.className = 'w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg font-bold shadow-lg transition transform hover:scale-105';
+      } else if (currentUsage.is_premium) {
+        // Premium user
+        freeBtn.textContent = '-';
+        freeBtn.disabled = true;
+        freeBtn.onclick = null;
+        freeBtn.className = 'w-full py-2 px-4 bg-gray-100 text-gray-400 rounded-lg font-medium cursor-not-allowed';
+
+        premiumBtn.textContent = '現在契約中のプラン';
+        premiumBtn.disabled = true;
+        premiumBtn.onclick = null;
+        premiumBtn.className = 'w-full py-3 px-4 bg-green-500 text-white rounded-lg font-bold shadow-lg cursor-not-allowed';
+      } else {
+        // Free logged-in user
+        freeBtn.textContent = '利用中';
+        freeBtn.disabled = true;
+        freeBtn.onclick = null;
+        freeBtn.className = 'w-full py-2 px-4 bg-blue-100 text-blue-700 rounded-lg font-medium cursor-not-allowed';
+
+        premiumBtn.textContent = 'プレミアムにアップグレード';
+        premiumBtn.disabled = false;
+        premiumBtn.onclick = () => openPremiumModal();
+        premiumBtn.className = 'w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg font-bold shadow-lg transition transform hover:scale-105';
+      }
+    }
+
+    function openPremiumModal() {
+      document.getElementById('premiumModal').classList.remove('hidden');
+      const msg = document.getElementById('premiumMessage');
+      if (msg) msg.textContent = '';
+    }
+
+    function closePremiumModal() {
+      document.getElementById('premiumModal').classList.add('hidden');
+    }
+
+    function subscribeMock() {
+      alert('（デモ）プレミアムプラン登録処理。\n※実際のアプリではStripe決済後にDBのis_premiumを更新します。');
+      // Theoretically calls backend to update DB
+      // For this demo, we can't easily update DB without RLS policy allowing it or a backend function.
+      // I will try to update it directly, assuming RLS allows user to update own record (unsafe but standard for proto)
+      // OR just alert.
+      upgradeToPremiumFake();
+    }
+
+    async function upgradeToPremiumFake() {
+      if (!currentUser) return;
+      const { error } = await sb
+        .from('user_usage')
+        .update({ is_premium: true })
+        .eq('id', currentUser.id);
+
+      if (!error) {
+        currentUsage.is_premium = true;
+        updateHeaderUI();
+        closePremiumModal();
+        alert('プレミアムプランに変更しました！');
+      } else {
+        alert('エラー: DB更新に失敗しました。RLS設定を確認してください。');
+      }
+    }
+
+
+    // Initialize UI
+    initSupabase();
+
+
+    // --- Existing App Logic (Sortable, Rename, etc.) ---
+    Sortable.create(listContainer, {
+      animation: 150,
+      ghostClass: 'ghost',
+      handle: '.cursor-move',
+      onEnd: function () {
+        syncDataWithDOM();
+        updateSortInputs();
+        updateFilenames();
+      }
+    });
+
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+
+    dropZone.addEventListener('click', () => {
+      fileInput.click();
+    });
+
+    fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('drag-over');
+      handleFiles(e.dataTransfer.files);
+    });
+
+    function handleFiles(files) {
+      const validFiles = Array.from(files).filter(file => file.type.startsWith('image/'));
+      if (validFiles.length === 0) return;
+      validFiles.forEach(file => {
+        const id = Math.random().toString(36).substr(2, 9);
+        const reader = new FileReader();
+        reader.onload = (e) => addImageToUI(id, file, e.target.result);
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function addImageToUI(id, file, src) {
+      const template = document.getElementById('imageItemTemplate');
+      const clone = template.content.cloneNode(true);
+      const root = clone.querySelector('.image-item');
+      root.setAttribute('data-id', id);
+      root.querySelector('img').src = src;
+      root.querySelector('.original-name').textContent = `元ファイル: ${file.name}`;
+      const radios = root.querySelectorAll('input[type="radio"]');
+      radios.forEach(radio => radio.name = `mode-${id}`);
+      listContainer.appendChild(root);
+      imageData.push({
+        id: id,
+        file: file,
+        mode: 'default',
+        customText: '',
+        element: root,
+        sortIndex: imageData.length + 1
+      });
+      root.querySelector('.sort-input').value = imageData.length;
+      updateUIState();
+      updateFilenames();
+    }
+
+    function removeImage(btn) {
+      const item = btn.closest('.image-item');
+      const id = item.getAttribute('data-id');
+      item.remove();
+      imageData = imageData.filter(img => img.id !== id);
+      updateSortInputs();
+      updateUIState();
+      updateFilenames();
+    }
+
+    function clearAll() {
+      if (!confirm('全ての画像を削除しますか？')) return;
+      listContainer.innerHTML = '';
+      imageData = [];
+      document.getElementById('fileInput').value = ''; // Reset file input
+      updateUIState();
+      updateFilenames();
+    }
+
+    function updateUIState() {
+      const count = imageData.length;
+      document.getElementById('imageCount').textContent = `(${count}枚)`;
+      document.getElementById('emptyState').style.display = count === 0 ? 'block' : 'none';
+    }
+
+    window.updateRowMode = function (radio) {
+      const item = radio.closest('.image-item');
+      const id = item.getAttribute('data-id');
+      const mode = radio.value;
+      const dataItem = imageData.find(img => img.id === id);
+      if (dataItem) dataItem.mode = mode;
+      const customInput = item.querySelector('.custom-input-container');
+      if (mode === 'custom') {
+        customInput.classList.remove('hidden');
+        customInput.querySelector('input').focus();
+      } else {
+        customInput.classList.add('hidden');
+      }
+      updateFilenames();
+    }
+
+    function syncDataWithDOM() {
+      const currentIds = Array.from(listContainer.children).map(el => el.getAttribute('data-id'));
+      const newData = [];
+      currentIds.forEach(id => {
+        const item = imageData.find(img => img.id === id);
+        if (item) newData.push(item);
+      });
+      imageData = newData;
+    }
+
+    function updateSortInputs() {
+      const inputs = listContainer.querySelectorAll('.sort-input');
+      inputs.forEach((input, index) => {
+        input.value = index + 1;
+      });
+    }
+
+    window.manualSort = function (input) {
+      const item = input.closest('.image-item');
+      const id = item.getAttribute('data-id');
+      const newIndex = parseFloat(input.value);
+      const dataItem = imageData.find(img => img.id === id);
+      if (dataItem) dataItem.tempSortIndex = newIndex;
+      const children = Array.from(listContainer.children);
+      let sortList = children.map((el, index) => {
+        const elId = el.getAttribute('data-id');
+        let val = index + 1;
+        if (elId === id) {
+          val = newIndex;
+        }
+        return {
+          id: elId,
+          val: val,
+          element: el
+        };
+      });
+      sortList.sort((a, b) => a.val - b.val);
+      sortList.forEach(obj => {
+        listContainer.appendChild(obj.element);
+      });
+      syncDataWithDOM();
+      updateSortInputs();
+      updateFilenames();
+    }
+
+    function toggleMinDigits() {
+      const type = document.getElementById('seqType').value;
+      const container = document.getElementById('minDigitsContainer');
+      if (type.startsWith('alphabet')) {
+        container.classList.add('opacity-50', 'pointer-events-none');
+      } else {
+        container.classList.remove('opacity-50', 'pointer-events-none');
+      }
+    }
+
+    function toAlpha(num) {
+      let s = '';
+      while (num >= 0) {
+        s = String.fromCharCode(num % 26 + 65) + s;
+        num = Math.floor(num / 26) - 1;
+      }
+      return s;
+    }
+
+    function updateFilenames() {
+      const prefix = document.getElementById('prefix').value;
+      const suffix = document.getElementById('suffix').value;
+      const seqType = document.getElementById('seqType').value;
+      let minDigits = parseInt(document.getElementById('minDigits').value) || 1;
+      if (minDigits < 1) minDigits = 1;
+      if (minDigits > 12) minDigits = 12;
+
+      let counter = 0;
+
+      imageData.forEach(img => {
+        const input = img.element.querySelector('.custom-input-container input');
+        if (input) img.customText = input.value.trim();
+      });
+
+      imageData.forEach(img => {
+        let newName = '';
+        const ext = img.file.name.split('.').pop();
+
+        let core = '';
+        if (img.mode === 'custom') {
+          core = img.customText;
+        } else {
+          if (seqType === 'number') {
+            let numStr = (counter + 1).toString();
+            if (numStr.length < minDigits) {
+              numStr = numStr.padStart(minDigits, '0');
+            }
+            core = numStr;
+          } else {
+            core = toAlpha(counter);
+            if (seqType === 'alphabet-lower') {
+              core = core.toLowerCase();
+            }
+          }
+          counter++;
+        }
+
+        newName = `${prefix}${core}${suffix}.${ext}`;
+        const previewEl = img.element.querySelector('.filename-preview');
+        if (previewEl) previewEl.textContent = newName;
+        img.finalName = newName;
+      });
+
+      // Update settings preview
+      updatePreview();
+    }
+
+    function updatePreview() {
+      const prefix = document.getElementById('prefix').value || 'IMG_';
+      const suffix = document.getElementById('suffix').value || '';
+      const seqType = document.getElementById('seqType').value;
+      let minDigits = parseInt(document.getElementById('minDigits').value) || 3;
+      if (minDigits < 1) minDigits = 1;
+      if (minDigits > 12) minDigits = 12;
+
+      let core = '';
+      if (seqType === 'number') {
+        core = '1'.padStart(minDigits, '0');
+      } else if (seqType === 'alphabet-upper') {
+        core = 'A';
+      } else {
+        core = 'a';
+      }
+
+      const preview = `${prefix}${core}${suffix}.jpg`;
+      const previewEl = document.getElementById('previewFilename');
+      if (previewEl) previewEl.textContent = preview;
+    }
+
+    // Initialize preview on load
+    updatePreview();
+
+    async function downloadZip() {
+      if (imageData.length === 0) {
+        alert('画像を追加してください。');
+        return;
+      }
+
+      // --- Limit Check ---
+      if (currentUser) {
+        // Logged-in user: check Supabase data
+        if (!currentUsage.is_premium && imageData.length >= 20) {
+          openPremiumModal();
+          document.getElementById('premiumMessage').textContent = '20枚以上を一括変換するには、プレミアムプランへのアップグレードが必要です。';
+          return;
+        }
+      } else {
+        // Guest user: check localStorage
+        if (imageData.length >= 20) {
+          // Show signup modal with custom alert
+          sessionStorage.setItem('pending_action', 'premium_promote');
+          openSignupModal();
+          const limitAlert = document.getElementById('signupLimitAlert');
+          if (limitAlert) limitAlert.classList.remove('hidden');
+          document.getElementById('signupMessage').textContent = '';
+          return;
+        }
+      }
+
+      const zip = new JSZip();
+      const usedNames = new Set();
+      for (const img of imageData) {
+        if (usedNames.has(img.finalName)) {
+          alert(`エラー: ファイル名が重複しています - ${img.finalName}\n設定や手入力を調整してください。`);
+          return;
+        }
+        usedNames.add(img.finalName);
+      }
+
+      const btn = document.querySelector('button[onclick="downloadZip()"]');
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '処理中...';
+      btn.disabled = true;
+
+      try {
+        for (const img of imageData) {
+          zip.file(img.finalName, img.file);
+        }
+        const content = await zip.generateAsync({ type: "blob" });
+        const zipName = document.getElementById('prefix').value ? `${document.getElementById('prefix').value}_images.zip` : 'images.zip';
+        saveAs(content, zipName);
+
+        // Update Usage
+        if (currentUser) {
+          await incrementUsage(imageData.length);
+        } else {
+          setGuestUsage(getGuestUsage() + imageData.length);
+        }
+
+      } catch (e) {
+        console.error(e);
+        alert('ZIP作成中にエラーが発生しました。');
+      } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      }
+    }
+  </script>
+</body>
+
+</html>

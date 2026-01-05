@@ -10,7 +10,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
+  <script src="https://js.hcaptcha.com/1/api.js?onload=onHCaptchaLoad&render=explicit" async defer></script>
   <style>
     .ghost {
       opacity: 0.5;
@@ -22,10 +22,31 @@
       border-color: #3b82f6;
       background-color: #eff6ff;
     }
+
+    /* ボタンが無効化された時のスタイル */
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
   </style>
 </head>
 
 <body class="bg-gray-100 min-h-screen p-8 text-gray-800 font-sans relative">
+
+  <!-- Loading Overlay for Stripe Checkout Success -->
+  <div id="stripeCheckoutLoading" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-[100]">
+    <div class="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full mx-4 text-center">
+      <div class="mb-4">
+        <svg class="animate-spin h-12 w-12 text-blue-600 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+      </div>
+      <h3 class="text-xl font-bold text-gray-900 mb-2">決済情報を確認中...</h3>
+      <p class="text-sm text-gray-600">少々お待ちください</p>
+      <p id="stripeCheckoutStatus" class="text-xs text-gray-500 mt-2"></p>
+    </div>
+  </div>
 
   <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-6">
 
@@ -218,8 +239,18 @@
       <div class="flex justify-between items-center mb-4">
         <h2 class="text-xl font-bold text-gray-800">画像リスト <span id="imageCount"
             class="text-sm font-normal text-gray-500 ml-2">(0枚)</span></h2>
-        <button onclick="clearAll()"
-          class="text-red-500 hover:text-red-700 text-sm font-medium hover:underline">全削除</button>
+        <div class="flex items-center gap-3">
+          <button onclick="downloadZip()"
+            class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transform active:scale-95 transition flex items-center text-sm">
+            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+            </svg>
+            ZIP作成＆ダウンロード
+          </button>
+          <button onclick="clearAll()"
+            class="text-red-500 hover:text-red-700 text-sm font-medium hover:underline">全削除</button>
+        </div>
       </div>
 
       <div id="imageList" class="grid grid-cols-1 gap-4">
@@ -275,10 +306,10 @@
             <input type="password" id="loginPassword"
               class="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500">
           </div>
-          <div class="h-captcha flex justify-center my-6 min-h-[78px]"
+          <div id="loginCaptcha" class="h-captcha flex justify-center my-6 min-h-[78px]"
             data-sitekey="7832e338-aed6-413c-9aba-7fa6ef465c64"></div>
           <div class="pt-2">
-            <button onclick="signIn()"
+            <button id="loginBtn" onclick="signIn()"
               class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg transition">ログイン</button>
           </div>
           <div class="relative flex py-2 items-center">
@@ -310,7 +341,7 @@
         <div id="signupLimitAlert"
           class="hidden bg-red-50 border border-red-200 p-4 rounded-lg mb-4 flex items-center gap-3">
           <span class="text-2xl">⚠️</span>
-          <p class="text-red-800 text-sm font-bold">20枚以上を一括変換するには、会員登録（無料）が必要です。</p>
+          <p class="text-red-800 text-sm font-bold">20枚以上を一括変換するには、Premiumプラン（月額990円）への登録が必要です。</p>
         </div>
         <div class="space-y-4">
           <div>
@@ -328,10 +359,10 @@
               <li>数字を含む</li>
             </ul>
           </div>
-          <div class="h-captcha flex justify-center my-6 min-h-[78px]"
+          <div id="signupCaptcha" class="h-captcha flex justify-center my-6 min-h-[78px]"
             data-sitekey="7832e338-aed6-413c-9aba-7fa6ef465c64"></div>
           <div class="pt-2">
-            <button onclick="signUp()"
+            <button id="signupBtn" onclick="signUp()"
               class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 rounded-lg transition">登録する</button>
           </div>
           <div class="relative flex py-2 items-center">
@@ -356,7 +387,8 @@
           </svg>
         </button>
 
-        <div class="text-center">
+        <!-- Pattern A: Free Plan (Default) -->
+        <div id="premiumModalFree" class="text-center">
           <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -373,14 +405,199 @@
                 (税込)</span></p>
           </div>
 
-          <button onclick="subscribeMock()"
+          <button onclick="subscribeToPremium(this)"
             class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg shadow-lg mb-3">
             今すぐ登録する
+          </button>
+        </div>
+
+        <!-- Pattern B: Premium Active -->
+        <div id="premiumModalActive" class="hidden">
+          <h2 class="text-2xl font-bold text-gray-900 mb-6 text-center">ご契約内容の確認</h2>
+          <div class="space-y-4 mb-6">
+            <div class="bg-gray-50 p-4 rounded-lg">
+              <p class="text-sm text-gray-600 mb-1">現在のプラン</p>
+              <p class="text-xl font-bold text-gray-900">Premium Plan</p>
+            </div>
+            <div class="bg-gray-50 p-4 rounded-lg">
+              <p class="text-sm text-gray-600 mb-1">次回の更新日</p>
+              <p id="premiumNextBillingDate" class="text-xl font-bold text-gray-900">-</p>
+              <p class="text-xs text-gray-500 mt-1">（自動更新）</p>
+            </div>
+          </div>
+          <button id="openPortalBtn" onclick="openPortal(this)"
+            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg shadow-lg mb-4">
+            領収書・支払い履歴の確認（Stripe）
+          </button>
+          <div class="text-center pt-4 border-t border-gray-200">
+            <button onclick="cancelSubscription(this)" class="text-xs text-gray-500 hover:text-red-600 underline">
+              解約をご希望の方はこちら
+            </button>
+          </div>
+        </div>
+
+        <!-- Pattern C: Premium Canceled -->
+        <div id="premiumModalCanceled" class="hidden">
+          <h2 class="text-2xl font-bold text-gray-900 mb-6 text-center">ご契約内容の確認</h2>
+          <div class="space-y-4 mb-6">
+            <div class="bg-gray-50 p-4 rounded-lg">
+              <p class="text-sm text-gray-600 mb-1">現在のプラン</p>
+              <p class="text-xl font-bold text-gray-900">Premium Plan<span class="text-sm font-normal text-red-600 ml-2">（解約済み）</span></p>
+            </div>
+            <div class="bg-gray-50 p-4 rounded-lg">
+              <p class="text-sm text-gray-600 mb-1">有効期限</p>
+              <p id="premiumExpiryDate" class="text-xl font-bold text-gray-900">-</p>
+              <p class="text-xs text-gray-500 mt-1">まで利用可能</p>
+            </div>
+          </div>
+          <button id="resumeSubscriptionBtn" onclick="resumeSubscription(this)"
+            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg shadow-lg mb-3">
+            サブスクリプションを再開する
           </button>
         </div>
       </div>
     </div>
 
+    <!-- Footer -->
+    <footer class="mt-8 pt-8 border-t border-gray-100 text-center">
+      <div class="flex justify-center gap-4 mb-2">
+        <button onclick="openLegalModal()" class="text-xs text-gray-400 hover:text-blue-500 underline transition">
+          特定商取引法に基づく表記
+        </button>
+        <span class="text-xs text-gray-400">|</span>
+        <button onclick="openContactModal()" class="text-xs text-gray-400 hover:text-blue-500 underline transition">
+          お問い合わせ
+        </button>
+      </div>
+      <p class="text-[10px] text-gray-300 mt-2">© 2024 Flexible Image Renamer</p>
+    </footer>
+
+  </div>
+
+  <!-- Legal Modal (Specified Commercial Transactions Act) -->
+  <div id="legalModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-[60]">
+    <div class="bg-white rounded-xl shadow-2xl p-8 max-w-lg w-full mx-4 relative max-h-[90vh] overflow-y-auto">
+      <button onclick="closeLegalModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+      <h2 class="text-xl font-bold text-gray-900 mb-6 border-b pb-2">特定商取引法に基づく表記</h2>
+
+      <div class="space-y-6 text-sm text-gray-700 leading-relaxed">
+        <section>
+          <h3 class="font-bold text-gray-900 mb-1">販売業者の名称</h3>
+          <p>Flexible Renamer 徳永 剛</p>
+        </section>
+
+        <section>
+          <h3 class="font-bold text-gray-900 mb-1">運営統括責任者</h3>
+          <p>徳永 剛</p>
+        </section>
+
+        <section>
+          <h3 class="font-bold text-gray-900 mb-1">所在地</h3>
+          <p>兵庫県尼崎市上坂部1-2-2-133</p>
+        </section>
+
+        <section>
+          <h3 class="font-bold text-gray-900 mb-1">連絡先</h3>
+          <p>info@shopify-spreadsheet.com</p>
+        </section>
+
+        <section>
+          <h3 class="font-bold text-gray-900 mb-1">販売価格</h3>
+          <p>Premiumプラン 月額990円</p>
+        </section>
+
+        <section>
+          <h3 class="font-bold text-gray-900 mb-1">支払方法</h3>
+          <p>クレジットカード</p>
+        </section>
+
+        <section>
+          <h3 class="font-bold text-gray-900 mb-1">解約・キャンセルについて</h3>
+          <p>毎月の契約日と同じ日にちに自動更新となります。契約後の途中解約はできません。自動更新を停止するには停止の手続きを進めてください。自動更新停止の手順は<a href="#" class="text-blue-500 hover:underline" onclick="event.preventDefault(); openCancellationGuideModal();">こちら</a></p>
+        </section>
+      </div>
+
+      <div class="mt-8 pt-4 border-t border-gray-100">
+        <button onclick="closeLegalModal()"
+          class="w-full bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold py-2 rounded-lg transition">
+          閉じる
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cancellation Guide Modal -->
+  <div id="cancellationGuideModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-[70]">
+    <div class="bg-white rounded-xl shadow-2xl p-8 max-w-lg w-full mx-4 relative max-h-[90vh] overflow-y-auto">
+      <button onclick="closeCancellationGuideModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+      <h2 class="text-xl font-bold text-gray-900 mb-6 border-b pb-2">自動更新停止の手順</h2>
+
+      <div class="space-y-6 text-sm text-gray-700 leading-relaxed">
+        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r">
+          <p class="text-sm text-blue-900 font-semibold mb-2">以下の手順で自動更新を停止できます：</p>
+          <ol class="list-decimal list-inside space-y-3 text-gray-800">
+            <li>ログインした状態で、画面右上の「契約確認」ボタンをクリックします。</li>
+            <li>表示された画面内の「サブスクリプションを解約する（自動更新を停止）」ボタンをクリックします。</li>
+            <li>確認ダイアログで「OK」を選択すると、次回の自動更新が停止されます。</li>
+          </ol>
+        </div>
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <p class="text-xs text-gray-600">
+            <strong>注意:</strong> 解約後も有効期限まではPremiumプランの機能をご利用いただけます。有効期限を過ぎると、自動的にFreeプランに戻ります。
+          </p>
+        </div>
+      </div>
+
+      <div class="mt-8 pt-4 border-t border-gray-100">
+        <button onclick="closeCancellationGuideModal()"
+          class="w-full bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold py-2 rounded-lg transition">
+          閉じる
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contact Modal -->
+  <div id="contactModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-[70]">
+    <div class="bg-white rounded-xl shadow-2xl p-8 max-w-lg w-full mx-4 relative max-h-[90vh] overflow-y-auto">
+      <button onclick="closeContactModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+      <h2 class="text-xl font-bold text-gray-900 mb-6 border-b pb-2">お問い合わせ</h2>
+
+      <form id="contactForm" onsubmit="submitInquiry(event); return false;" class="space-y-4">
+        <div>
+          <label for="contactSubject" class="block text-sm font-medium text-gray-700 mb-1">件名 <span class="text-red-500">*</span></label>
+          <input type="text" id="contactSubject" name="subject" required
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            placeholder="お問い合わせの件名を入力してください">
+        </div>
+
+        <div>
+          <label for="contactMessage" class="block text-sm font-medium text-gray-700 mb-1">お問い合わせ内容 <span class="text-red-500">*</span></label>
+          <textarea id="contactMessage" name="message" required rows="6"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+            placeholder="お問い合わせ内容を入力してください"></textarea>
+        </div>
+
+        <div class="pt-4 border-t border-gray-100">
+          <button type="submit" id="contactSubmitBtn"
+            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg shadow-lg transition">
+            送信する
+          </button>
+        </div>
+      </form>
+    </div>
   </div>
 
   <!-- Template for List Item -->
@@ -453,11 +670,15 @@
     let imageData = [];
     const listContainer = document.getElementById('imageList');
     let currentUser = null;
-    let currentUsage = { daily_count: 0, is_premium: false };
+    let currentUsage = { daily_count: 0, is_premium: false, subscription_status: null, next_billing_date: null };
+
+    // hCaptcha Widget IDs for explicit reset
+    let loginCaptchaId = null;
+    let signupCaptchaId = null;
 
     // --- Supabase Configuration ---
     const supabaseUrl = 'https://dewwtecteezjvpqoqirv.supabase.co';
-    const supabaseKey = 'sb_publishable_0UU6JBGvV9c8bzqbQW-_uw_aPbDcPYK';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRld3d0ZWN0ZWV6anZwcW9xaXJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc0MjkxNDgsImV4cCI6MjA4MzAwNTE0OH0.uC5LgVMDKEoCyz4M4ZL1biTRCrN6e5zVyo77yEuUHgQ';
     // Initialize Supabase Client
     // Note: using checking if window.supabase exists, for robustness
     let sb = null;
@@ -571,6 +792,40 @@
       }
     }
 
+    // --- hCaptcha Explicit Loading ---
+    window.onHCaptchaLoad = function () {
+      if (typeof hcaptcha !== 'undefined') {
+        const loginEl = document.getElementById('loginCaptcha');
+        const signupEl = document.getElementById('signupCaptcha');
+
+        if (loginEl) {
+          loginCaptchaId = hcaptcha.render('loginCaptcha', {
+            sitekey: loginEl.getAttribute('data-sitekey'),
+            theme: 'light'
+          });
+        }
+
+        if (signupEl) {
+          signupCaptchaId = hcaptcha.render('signupCaptcha', {
+            sitekey: signupEl.getAttribute('data-sitekey'),
+            theme: 'light'
+          });
+        }
+      }
+    };
+
+    // Helper: Safer Captcha Reset
+    function resetAllCaptchas() {
+      if (typeof hcaptcha !== 'undefined') {
+        try {
+          if (loginCaptchaId !== null) hcaptcha.reset(loginCaptchaId);
+          if (signupCaptchaId !== null) hcaptcha.reset(signupCaptchaId);
+        } catch (e) {
+          console.warn('Captcha reset failed:', e);
+        }
+      }
+    }
+
     function handlePremiumCTA() {
       if (currentUser) {
         openPremiumModal();
@@ -583,7 +838,7 @@
     function openLoginModal() {
       document.getElementById('loginModal').classList.remove('hidden');
       document.getElementById('loginMessage').textContent = '';
-      if (typeof hcaptcha !== 'undefined') hcaptcha.reset();
+      resetAllCaptchas();
       const duplicateAlert = document.getElementById('loginDuplicateAlert');
       if (duplicateAlert) duplicateAlert.classList.add('hidden');
       closeSignupModal();
@@ -591,13 +846,13 @@
 
     function closeLoginModal() {
       document.getElementById('loginModal').classList.add('hidden');
-      if (typeof hcaptcha !== 'undefined') hcaptcha.reset();
+      resetAllCaptchas();
     }
 
     function openSignupModal() {
       document.getElementById('signupModal').classList.remove('hidden');
       document.getElementById('signupMessage').textContent = '';
-      if (typeof hcaptcha !== 'undefined') hcaptcha.reset();
+      resetAllCaptchas();
       const limitAlert = document.getElementById('signupLimitAlert');
       if (limitAlert) limitAlert.classList.add('hidden');
       closeLoginModal();
@@ -605,7 +860,7 @@
 
     function closeSignupModal() {
       document.getElementById('signupModal').classList.add('hidden');
-      if (typeof hcaptcha !== 'undefined') hcaptcha.reset();
+      resetAllCaptchas();
     }
 
     function switchToSignup() {
@@ -618,36 +873,124 @@
       openLoginModal();
     }
 
+    function openLegalModal() {
+      document.getElementById('legalModal').classList.remove('hidden');
+    }
+
+    function closeLegalModal() {
+      document.getElementById('legalModal').classList.add('hidden');
+    }
+
+    function openCancellationGuideModal() {
+      document.getElementById('cancellationGuideModal').classList.remove('hidden');
+    }
+
+    function closeCancellationGuideModal() {
+      document.getElementById('cancellationGuideModal').classList.add('hidden');
+    }
+
+    function openContactModal() {
+      // Premiumプラン限定のアクセス制限
+      if (!currentUsage || !currentUsage.is_premium) {
+        alert('お問い合わせはPremiumプラン限定の機能です。');
+        return;
+      }
+
+      document.getElementById('contactModal').classList.remove('hidden');
+      // フォームをリセット
+      const form = document.getElementById('contactForm');
+      if (form) {
+        form.reset();
+      }
+    }
+
+    function closeContactModal() {
+      document.getElementById('contactModal').classList.add('hidden');
+      // フォームをリセット
+      const form = document.getElementById('contactForm');
+      if (form) {
+        form.reset();
+      }
+    }
+
+    async function submitInquiry(event) {
+      event.preventDefault();
+
+      const subject = document.getElementById('contactSubject').value.trim();
+      const message = document.getElementById('contactMessage').value.trim();
+
+      if (!subject || !message) {
+        alert('件名とお問い合わせ内容を入力してください。');
+        return;
+      }
+
+      // ボタン連打防止
+      const btn = document.getElementById('contactSubmitBtn');
+      const originalText = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = '送信中...';
+
+      try {
+        // モック送信処理: console.logに出力
+        console.log('=== お問い合わせ送信（モック） ===');
+        console.log('件名:', subject);
+        console.log('内容:', message);
+        console.log('送信日時:', new Date().toISOString());
+        console.log('ユーザーID:', currentUser?.id || 'N/A');
+        console.log('================================');
+
+        // アラート表示とモーダルを閉じる
+        alert('お問い合わせを受け付けました。返信まで数日お待ちください。');
+        closeContactModal();
+      } catch (e) {
+        console.error('Submit inquiry error:', e);
+        alert('エラーが発生しました。もう一度お試しください。');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = originalText;
+      }
+    }
+
     // Auth Actions
     async function signIn() {
       const email = document.getElementById('loginEmail').value;
       const password = document.getElementById('loginPassword').value;
       const msg = document.getElementById('loginMessage');
+      const btn = document.getElementById('loginBtn');
 
       if (!email || !password) {
         msg.textContent = 'メールアドレスとパスワードを入力してください';
         return;
       }
 
-      const token = typeof hcaptcha !== 'undefined' ? hcaptcha.getResponse() : '';
+      const captchaEl = document.querySelector('#loginModal [name="h-captcha-response"]');
+      const token = captchaEl ? captchaEl.value : '';
+
       if (!token) {
         alert('「私はロボットではありません」にチェックを入れてください');
         return;
       }
 
+      // 防止: ダブルクリック対策
+      btn.disabled = true;
       msg.textContent = '処理中...';
-      const { data, error } = await sb.auth.signInWithPassword({
-        email,
-        password,
-        options: { captchaToken: token }
-      });
 
-      if (error) {
-        msg.textContent = 'ログインエラー: ' + error.message;
-        if (typeof hcaptcha !== 'undefined') hcaptcha.reset();
-      } else {
-        msg.textContent = '';
-        if (typeof hcaptcha !== 'undefined') hcaptcha.reset();
+      try {
+        const { data, error } = await sb.auth.signInWithPassword({
+          email,
+          password,
+          options: { captchaToken: token }
+        });
+
+        if (error) {
+          msg.textContent = 'ログインエラー: ' + error.message;
+          resetAllCaptchas();
+        } else {
+          msg.textContent = '';
+          resetAllCaptchas();
+        }
+      } finally {
+        btn.disabled = false;
       }
     }
 
@@ -655,6 +998,7 @@
       const email = document.getElementById('signupEmail').value;
       const password = document.getElementById('signupPassword').value;
       const msg = document.getElementById('signupMessage');
+      const btn = document.getElementById('signupBtn');
 
       if (!email || !password) {
         msg.textContent = 'メールアドレスとパスワードを入力してください';
@@ -676,35 +1020,44 @@
         return;
       }
 
-      const token = typeof hcaptcha !== 'undefined' ? hcaptcha.getResponse() : '';
+      const captchaEl = document.querySelector('#signupModal [name="h-captcha-response"]');
+      const token = captchaEl ? captchaEl.value : '';
+
       if (!token) {
         alert('「私はロボットではありません」にチェックを入れてください');
         return;
       }
 
+      // 防止: ダブルクリック対策
+      btn.disabled = true;
       msg.textContent = '登録処理中...';
-      const { data, error } = await sb.auth.signUp({
-        email,
-        password,
-        options: { captchaToken: token }
-      });
 
-      if (error) {
-        if (error.status === 422 || error.message.includes('already registered') || error.message.includes('already exists')) {
-          msg.textContent = '';
-          const signupEmail = document.getElementById('signupEmail').value;
-          switchToLogin();
-          document.getElementById('loginEmail').value = signupEmail;
-          const duplicateAlert = document.getElementById('loginDuplicateAlert');
-          if (duplicateAlert) duplicateAlert.classList.remove('hidden');
-          if (typeof hcaptcha !== 'undefined') hcaptcha.reset();
+      try {
+        const { data, error } = await sb.auth.signUp({
+          email,
+          password,
+          options: { captchaToken: token }
+        });
+
+        if (error) {
+          if (error.status === 422 || error.message.includes('already registered') || error.message.includes('already exists')) {
+            msg.textContent = '';
+            const signupEmail = document.getElementById('signupEmail').value;
+            switchToLogin();
+            document.getElementById('loginEmail').value = signupEmail;
+            const duplicateAlert = document.getElementById('loginDuplicateAlert');
+            if (duplicateAlert) duplicateAlert.classList.remove('hidden');
+            resetAllCaptchas();
+          } else {
+            msg.textContent = '登録エラー: ' + error.message;
+            resetAllCaptchas();
+          }
         } else {
-          msg.textContent = '登録エラー: ' + error.message;
-          if (typeof hcaptcha !== 'undefined') hcaptcha.reset();
+          msg.textContent = '確認メールを送信しました。メール内のリンクをクリックしてください。';
+          resetAllCaptchas();
         }
-      } else {
-        msg.textContent = '確認メールを送信しました。メール内のリンクをクリックしてください。';
-        if (typeof hcaptcha !== 'undefined') hcaptcha.reset();
+      } finally {
+        btn.disabled = false;
       }
     }
 
@@ -733,73 +1086,223 @@
     }
 
     // --- Usage DB Logic ---
+    // Helper: Calculate next billing date (mock - 30 days from now)
+    function getNextBillingDate() {
+      const date = new Date();
+      date.setMonth(date.getMonth() + 1);
+      return date.toISOString().split('T')[0];
+    }
+
     async function fetchUsage() {
-      if (!currentUser || !sb) return;
+      if (!currentUser || !sb) {
+        // ユーザーまたはSupabaseクライアントが存在しない場合はデフォルト値をセット
+        const today = new Date().toISOString().split('T')[0];
+        currentUsage = { 
+          id: currentUser?.id || null, 
+          daily_count: 0, 
+          last_reset_date: today, 
+          is_premium: false,
+          subscription_status: null,
+          next_billing_date: null
+        };
+        updateHeaderUI();
+        return;
+      }
       const today = new Date().toISOString().split('T')[0];
 
-      // 1. Fetch record
-      let { data, error } = await sb
-        .from('user_usage')
-        .select('*')
-        .eq('id', currentUser.id)
-        .maybeSingle();
+      // デフォルト値を事前にセット（Fail Openの実装）
+      let data = { 
+        id: currentUser.id, 
+        daily_count: 0, 
+        last_reset_date: today, 
+        is_premium: false,
+        subscription_status: null,
+        next_billing_date: null
+      };
 
-      if (error) {
-        console.error('Fetch Usage Error:', error);
-        alert('利用状況の取得に失敗しました。制限機能が正しく動作しない可能性があります。');
-      }
-
-      // 2. If no record, create default
-      if (!data) {
-        const { data: newData, error: insertError } = await sb
-          .from('user_usage')
-          .insert([{ id: currentUser.id, daily_count: 0, last_reset_date: today, is_premium: false }])
-          .select()
-          .single();
-
-        if (insertError) {
-          console.error('Insert Usage Error:', insertError);
-          alert('利用状況の初期化に失敗しました。ページを再読み込みしてください。');
-          return;
+      try {
+        // 1. Fetch record
+        let fetchResult;
+        try {
+          fetchResult = await sb
+            .from('user_usage')
+            .select('*')
+            .eq('id', currentUser.id)
+            .maybeSingle();
+        } catch (fetchErr) {
+          // ネットワークエラーやその他のエラーでも続行
+          console.error('Usage Init: Fetch error (continuing with defaults):', fetchErr);
+          fetchResult = { data: null, error: fetchErr };
         }
-        data = newData;
-      }
 
-      // 3. Check Daily Reset
-      if (data.last_reset_date !== today) {
-        // Update DB to reset
-        const { error: updateError } = await sb
-          .from('user_usage')
-          .update({ daily_count: 0, last_reset_date: today })
-          .eq('id', currentUser.id);
+        const { data: fetchedData, error: fetchError } = fetchResult;
 
-        if (!updateError) {
-          data.daily_count = 0;
-          data.last_reset_date = today;
-        }
-      }
+        // 2. If no record, create default
+        if (!fetchedData) {
+          // Insert attempt
+          let insertResult;
+          try {
+            insertResult = await sb
+              .from('user_usage')
+              .insert([{ id: currentUser.id, daily_count: 0, last_reset_date: today, is_premium: false }])
+              .select()
+              .single();
+          } catch (insertErr) {
+            // Insertエラーでも続行
+            console.error('Usage Init: Insert error (continuing with defaults):', insertErr);
+            insertResult = { data: null, error: insertErr };
+          }
 
-      // 4. Sync guest usage to member account (prevent loophole)
-      const guestUsed = getGuestUsage();
-      if (guestUsed > 0) {
-        const newCount = data.daily_count + guestUsed;
-        const { error: syncError } = await sb
-          .from('user_usage')
-          .update({ daily_count: newCount })
-          .eq('id', currentUser.id);
+          const { data: newData, error: insertError } = insertResult;
 
-        if (!syncError) {
-          data.daily_count = newCount;
-          setGuestUsage(0); // Clear guest usage after sync
-          console.log(`Synced ${guestUsed} guest downloads to member account`);
+          if (insertError) {
+            console.warn('Usage Init: Insert failed, retrying select after delay...', insertError);
+
+            // ★Wait処理: 1秒待つ（サーバー側の処理完了待ち）
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            // Retry Select
+            let retryResult;
+            try {
+              retryResult = await sb
+                .from('user_usage')
+                .select('*')
+                .eq('id', currentUser.id)
+                .maybeSingle();
+            } catch (retryErr) {
+              // Retryエラーでも続行
+              console.error('Usage Init: Retry select error (continuing with defaults):', retryErr);
+              retryResult = { data: null, error: retryErr };
+            }
+
+            const { data: retryData, error: retryError } = retryResult;
+
+            if (retryError || !retryData) {
+              // ★フォールバック: エラーアラートを出さず、デフォルト値を使う
+              console.error('Usage Init: Fatal sync error. Using offline fallback.', retryError);
+              // デフォルト値は既にセット済み
+            } else {
+              data = retryData;
+            }
+          } else {
+            data = newData;
+          }
         } else {
-          console.error('Guest Sync Error:', syncError);
+          data = fetchedData;
         }
+
+        // 3. Check Daily Reset & Sync Guest Usage
+        if (data) {
+          // Reset logic
+          if (data.last_reset_date !== today) {
+            // DB更新を試みるが、失敗してもメモリ上の値を更新して進む
+            let updateResult;
+            try {
+              updateResult = await sb
+                .from('user_usage')
+                .update({ daily_count: 0, last_reset_date: today })
+                .eq('id', currentUser.id);
+            } catch (updateErr) {
+              // Updateエラーでも続行
+              console.error('Usage Init: Update error (continuing with defaults):', updateErr);
+              updateResult = { error: updateErr };
+            }
+
+            const { error: updateError } = updateResult;
+
+            if (!updateError) {
+              data.daily_count = 0;
+              data.last_reset_date = today;
+            } else {
+              // エラー時でもメモリ上の値を更新
+              data.daily_count = 0;
+              data.last_reset_date = today;
+            }
+          }
+
+          // Guest sync logic
+          const guestUsed = getGuestUsage();
+          if (guestUsed > 0) {
+            const newCount = (data.daily_count || 0) + guestUsed;
+            let syncResult;
+            try {
+              syncResult = await sb
+                .from('user_usage')
+                .update({ daily_count: newCount })
+                .eq('id', currentUser.id);
+            } catch (syncErr) {
+              // Syncエラーでも続行
+              console.error('Usage Init: Sync error (continuing with defaults):', syncErr);
+              syncResult = { error: syncErr };
+            }
+
+            const { error: syncError } = syncResult;
+
+            if (!syncError) {
+              data.daily_count = newCount;
+              setGuestUsage(0);
+            } else {
+              // エラー時でもメモリ上の値を更新
+              data.daily_count = newCount;
+            }
+          }
+
+          currentUsage = data;
+        } else {
+          // dataがnullの場合もデフォルト値をセット
+          currentUsage = { 
+            id: currentUser.id, 
+            daily_count: 0, 
+            last_reset_date: today, 
+            is_premium: false,
+            subscription_status: null,
+            next_billing_date: null
+          };
+        }
+
+        // モック: Premiumユーザーの場合、サブスクリプション情報を設定
+        if (currentUsage.is_premium) {
+          // DBから取得したデータに subscription_status がない場合は、モックで設定
+          if (!currentUsage.subscription_status) {
+            // モック: デフォルトは 'active'（契約中）
+            currentUsage.subscription_status = 'active';
+          }
+          if (!currentUsage.next_billing_date) {
+            // モック: 次回更新日を計算（1ヶ月後）
+            currentUsage.next_billing_date = getNextBillingDate();
+          }
+        } else {
+          // 無料プランの場合は null
+          currentUsage.subscription_status = null;
+          currentUsage.next_billing_date = null;
+        }
+
+      } catch (e) {
+        // ★包括的エラーハンドリング: 何が起きてもデフォルト値で動かす
+        // アラートは絶対に表示しない
+        console.error('Unexpected error in fetchUsage:', e);
+        currentUsage = { 
+          id: currentUser.id, 
+          daily_count: 0, 
+          last_reset_date: today, 
+          is_premium: false,
+          subscription_status: null,
+          next_billing_date: null
+        };
       }
 
-      if (data) {
-        currentUsage = data;
+      // 最終的にcurrentUsageがセットされていることを確認
+      if (!currentUsage || !currentUsage.id) {
+        currentUsage = { 
+          id: currentUser.id, 
+          daily_count: 0, 
+          last_reset_date: today, 
+          is_premium: false,
+          subscription_status: null,
+          next_billing_date: null
+        };
       }
+
       updateHeaderUI();
     }
 
@@ -828,11 +1331,16 @@
     function updateHeaderUI() {
       const planName = document.getElementById('planName');
       const usageText = document.getElementById('usageText');
+      const planLink = document.querySelector('#planBadge a[onclick="openPremiumModal()"]');
 
       if (currentUsage.is_premium) {
         planName.textContent = 'Premium Plan';
         planName.className = 'bg-yellow-100 text-yellow-800 font-bold px-3 py-1 rounded-full text-sm';
         usageText.textContent = '無制限で利用可能';
+        // Premiumユーザーの場合は「契約確認」に変更
+        if (planLink) {
+          planLink.textContent = '契約確認';
+        }
       } else {
         planName.textContent = 'Free Plan';
         planName.className = 'bg-gray-200 text-gray-700 font-bold px-3 py-1 rounded-full text-sm';
@@ -841,6 +1349,10 @@
           usageText.classList.add('text-red-500', 'font-bold');
         } else {
           usageText.classList.remove('text-red-500', 'font-bold');
+        }
+        // 無料プランユーザーの場合は「プラン変更」に戻す
+        if (planLink) {
+          planLink.textContent = 'プラン変更';
         }
       }
       // Also update pricing section
@@ -888,45 +1400,372 @@
       }
     }
 
+    // Helper: Format date from YYYY-MM-DD to YYYY/MM/DD
+    function formatDate(dateStr) {
+      if (!dateStr) return '-';
+      return dateStr.replace(/-/g, '/');
+    }
+
     function openPremiumModal() {
       document.getElementById('premiumModal').classList.remove('hidden');
-      const msg = document.getElementById('premiumMessage');
-      if (msg) msg.textContent = '';
+      
+      // 3つのパターンで表示を切り替え
+      const freeView = document.getElementById('premiumModalFree');
+      const activeView = document.getElementById('premiumModalActive');
+      const canceledView = document.getElementById('premiumModalCanceled');
+      
+      // すべて非表示にする
+      if (freeView) freeView.classList.add('hidden');
+      if (activeView) activeView.classList.add('hidden');
+      if (canceledView) canceledView.classList.add('hidden');
+      
+      // ユーザーの状態に応じて表示
+      if (currentUsage.is_premium) {
+        if (currentUsage.subscription_status === 'canceled') {
+          // Pattern C: Premium（解約済み・期限内）
+          if (canceledView) {
+            canceledView.classList.remove('hidden');
+            const expiryDateEl = document.getElementById('premiumExpiryDate');
+            if (expiryDateEl && currentUsage.next_billing_date) {
+              expiryDateEl.textContent = formatDate(currentUsage.next_billing_date);
+            }
+          }
+        } else {
+          // Pattern B: Premium（契約中）
+          if (activeView) {
+            activeView.classList.remove('hidden');
+            const nextBillingDateEl = document.getElementById('premiumNextBillingDate');
+            if (nextBillingDateEl && currentUsage.next_billing_date) {
+              nextBillingDateEl.textContent = formatDate(currentUsage.next_billing_date);
+            }
+          }
+        }
+      } else {
+        // Pattern A: 無料プランユーザー
+        if (freeView) {
+          freeView.classList.remove('hidden');
+          const msg = document.getElementById('premiumMessage');
+          if (msg) msg.textContent = '';
+        }
+      }
     }
 
     function closePremiumModal() {
       document.getElementById('premiumModal').classList.add('hidden');
     }
 
-    function subscribeMock() {
-      alert('（デモ）プレミアムプラン登録処理。\n※実際のアプリではStripe決済後にDBのis_premiumを更新します。');
-      // Theoretically calls backend to update DB
-      // For this demo, we can't easily update DB without RLS policy allowing it or a backend function.
-      // I will try to update it directly, assuming RLS allows user to update own record (unsafe but standard for proto)
-      // OR just alert.
-      upgradeToPremiumFake();
-    }
+    async function cancelSubscription(btnElement) {
+      // 確認ダイアログ
+      if (!confirm('サブスクリプションの自動更新を停止しますか？\n\n現在のプランは有効期限まで利用可能です。')) {
+        return;
+      }
 
-    async function upgradeToPremiumFake() {
       if (!currentUser) return;
-      const { error } = await sb
-        .from('user_usage')
-        .update({ is_premium: true })
-        .eq('id', currentUser.id);
 
-      if (!error) {
-        currentUsage.is_premium = true;
+      // ボタン連打防止
+      const btn = btnElement || document.getElementById('cancelSubscriptionBtn');
+      if (!btn) return;
+      const originalText = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = '処理中...';
+
+      try {
+        // モック: ローカルでステータスを更新
+        currentUsage.subscription_status = 'canceled';
+        // 有効期限は next_billing_date をそのまま使用（変更しない）
+
+        // 実際のアプリでは、ここでバックエンドAPIを呼び出してDBを更新
+        // モックのため、ローカルのみで更新
+        console.log('Subscription canceled (mock):', currentUsage);
+
+        // UIを更新
         updateHeaderUI();
         closePremiumModal();
-        alert('プレミアムプランに変更しました！');
-      } else {
-        alert('エラー: DB更新に失敗しました。RLS設定を確認してください。');
+        alert('サブスクリプションの自動更新を停止しました。\n有効期限までPremiumプランをご利用いただけます。');
+      } catch (e) {
+        console.error('Cancel subscription error:', e);
+        alert('エラーが発生しました。もう一度お試しください。');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = originalText;
       }
     }
 
+    async function resumeSubscription(btnElement) {
+      // 確認ダイアログ
+      if (!confirm('サブスクリプションを再開しますか？\n\n次回の更新日から自動更新が再開されます。')) {
+        return;
+      }
+
+      if (!currentUser) return;
+
+      // ボタン連打防止
+      const btn = btnElement || document.getElementById('resumeSubscriptionBtn');
+      if (!btn) return;
+      const originalText = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = '処理中...';
+
+      try {
+        // モック: ローカルでステータスを更新
+        currentUsage.subscription_status = 'active';
+        // 次回更新日を再計算（1ヶ月後）
+        currentUsage.next_billing_date = getNextBillingDate();
+
+        // 実際のアプリでは、ここでバックエンドAPIを呼び出してDBを更新
+        // モックのため、ローカルのみで更新
+        console.log('Subscription resumed (mock):', currentUsage);
+
+        // UIを更新
+        updateHeaderUI();
+        closePremiumModal();
+        alert('サブスクリプションを再開しました。\n次回の更新日から自動更新が再開されます。');
+      } catch (e) {
+        console.error('Resume subscription error:', e);
+        alert('エラーが発生しました。もう一度お試しください。');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = originalText;
+      }
+    }
+
+    async function subscribeToPremium(btnElement) {
+      if (!currentUser || !sb) {
+        alert('ログインが必要です。');
+        return;
+      }
+
+      // ボタン連打防止
+      const btn = btnElement || document.querySelector('button[onclick*="subscribeToPremium"]');
+      let originalText = '今すぐ登録する';
+      if (btn) {
+        originalText = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = '処理中...';
+      }
+
+      try {
+        // Supabase Edge Functionを呼び出してStripe Checkout Sessionを作成
+        const { data, error } = await sb.functions.invoke('create-checkout-session', {
+          body: {}
+        });
+
+        if (error) {
+          console.error('Checkout session creation error:', error);
+          alert('決済セッションの作成に失敗しました。もう一度お試しください。');
+          return;
+        }
+
+        if (!data || !data.url) {
+          console.error('Invalid response from create-checkout-session:', data);
+          alert('決済ページのURLを取得できませんでした。もう一度お試しください。');
+          return;
+        }
+
+        // Stripeの決済ページにリダイレクト
+        window.location.href = data.url;
+      } catch (e) {
+        console.error('Unexpected error in subscribeToPremium:', e);
+        alert('エラーが発生しました。もう一度お試しください。');
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = originalText;
+        }
+      }
+    }
+
+    async function openPortal(btnElement) {
+      if (!currentUser || !sb) {
+        alert('ログインが必要です。');
+        return;
+      }
+
+      // ボタン連打防止
+      const btn = btnElement || document.getElementById('openPortalBtn');
+      let originalText = '領収書・支払い履歴の確認（Stripe）';
+      if (btn) {
+        originalText = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = '処理中...';
+      }
+
+      try {
+        // Supabase Edge Functionを呼び出してStripe Customer Portal Sessionを作成
+        const { data, error } = await sb.functions.invoke('create-portal-session', {
+          body: {}
+        });
+
+        if (error) {
+          console.error('Portal session creation error:', error);
+          alert('ポータルセッションの作成に失敗しました。もう一度お試しください。');
+          return;
+        }
+
+        if (!data || !data.url) {
+          console.error('Invalid response from create-portal-session:', data);
+          alert('ポータルページのURLを取得できませんでした。もう一度お試しください。');
+          return;
+        }
+
+        // Stripeのカスタマーポータルにリダイレクト
+        window.location.href = data.url;
+      } catch (e) {
+        console.error('Unexpected error in openPortal:', e);
+        alert('エラーが発生しました。もう一度お試しください。');
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = originalText;
+        }
+      }
+    }
+
+    // Check for Stripe checkout success with polling
+    async function checkStripeCheckoutSuccess() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const sessionId = urlParams.get('session_id');
+      
+      if (!sessionId) {
+        return; // No session_id, exit early
+      }
+
+      // Wait for user to be loaded
+      if (!currentUser) {
+        // Retry after a short delay if user is not loaded yet
+        setTimeout(() => {
+          checkStripeCheckoutSuccess();
+        }, 500);
+        return;
+      }
+
+      // Show loading overlay
+      const loadingOverlay = document.getElementById('stripeCheckoutLoading');
+      const statusText = document.getElementById('stripeCheckoutStatus');
+      if (loadingOverlay) {
+        loadingOverlay.classList.remove('hidden');
+      }
+
+      // Polling configuration
+      const pollInterval = 2000; // 2 seconds
+      const maxWaitTime = 20000; // 20 seconds
+      const startTime = Date.now();
+      let pollCount = 0;
+
+      const pollUsage = async () => {
+        pollCount++;
+        const elapsed = Date.now() - startTime;
+
+        // Update status text
+        if (statusText) {
+          statusText.textContent = `確認中... (${Math.floor(elapsed / 1000)}秒)`;
+        }
+
+        try {
+          // Fetch current usage from database
+          if (!currentUser || !sb) {
+            throw new Error('User or Supabase client not available');
+          }
+
+          const { data, error } = await sb
+            .from('user_usage')
+            .select('*')
+            .eq('id', currentUser.id)
+            .maybeSingle();
+
+          if (error) {
+            console.error('Error fetching usage:', error);
+            // Continue polling even on error
+          } else if (data) {
+            // Check if premium status is active
+            const isPremium = data.is_premium === true;
+            const subscriptionStatus = data.subscription_status;
+
+            // Check if subscription is active (either is_premium is true or subscription_status is 'active')
+            if (isPremium || subscriptionStatus === 'active') {
+              // Success! Update currentUsage and UI
+              currentUsage = {
+                ...currentUsage,
+                is_premium: true,
+                subscription_status: subscriptionStatus || 'active',
+                stripe_customer_id: data.stripe_customer_id || currentUsage.stripe_customer_id,
+                next_billing_date: data.next_billing_date || currentUsage.next_billing_date,
+              };
+
+              // Hide loading overlay
+              if (loadingOverlay) {
+                loadingOverlay.classList.add('hidden');
+              }
+
+              // Update UI
+              updateHeaderUI();
+
+              // Remove session_id from URL
+              const newUrl = window.location.pathname;
+              window.history.replaceState({}, '', newUrl);
+
+              // Show success message
+              alert('プレミアムプランへの登録が完了しました！\n\nアップグレードありがとうございます！');
+
+              // Open premium modal to show subscription details
+              setTimeout(() => {
+                openPremiumModal();
+              }, 500);
+
+              return; // Exit polling
+            }
+          }
+
+          // Check timeout
+          if (elapsed >= maxWaitTime) {
+            // Timeout reached
+            if (loadingOverlay) {
+              loadingOverlay.classList.add('hidden');
+            }
+
+            // Remove session_id from URL
+            const newUrl = window.location.pathname;
+            window.history.replaceState({}, '', newUrl);
+
+            alert('反映に時間がかかっています。\n後ほどページをリロードしてください。\n\nもし問題が続く場合は、お問い合わせフォームからご連絡ください。');
+            return; // Exit polling
+          }
+
+          // Continue polling
+          setTimeout(pollUsage, pollInterval);
+        } catch (error) {
+          console.error('Error in pollUsage:', error);
+          
+          // Check timeout even on error
+          const elapsed = Date.now() - startTime;
+          if (elapsed >= maxWaitTime) {
+            if (loadingOverlay) {
+              loadingOverlay.classList.add('hidden');
+            }
+            const newUrl = window.location.pathname;
+            window.history.replaceState({}, '', newUrl);
+            alert('反映に時間がかかっています。\n後ほどページをリロードしてください。');
+            return;
+          }
+
+          // Continue polling even on error
+          setTimeout(pollUsage, pollInterval);
+        }
+      };
+
+      // Start polling after initial delay (give webhook time to process)
+      setTimeout(() => {
+        pollUsage();
+      }, 1000);
+    }
 
     // Initialize UI
     initSupabase();
+    
+    // Check for Stripe checkout success after initialization
+    setTimeout(() => {
+      checkStripeCheckoutSuccess();
+    }, 1000);
 
 
     // --- Existing App Logic (Sortable, Rename, etc.) ---

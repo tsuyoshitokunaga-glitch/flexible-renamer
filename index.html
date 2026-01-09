@@ -4,7 +4,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Flexible Image Renamer</title>
+  <meta name="description" content="画像、PDF、Office書類(Excel/Word/PPT)、動画まで。あらゆるファイル名をドラッグ＆ドロップで一括変換。サーバーに送信しないため機密情報も安全です。完全無料・登録不要。">
+  <title>あらゆるファイルを一括リネーム！ブラウザ完結・インストール不要｜Flexible Renamer</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
@@ -54,7 +55,11 @@
     <header class="mb-6 border-b pb-4 flex justify-between items-start">
       <div>
         <h1 class="text-3xl font-bold text-gray-900 mb-2">Flexible Image Renamer</h1>
-        <p class="text-gray-600">設定に基づいて画像をリネームし、ZIPで一括ダウンロードします。</p>
+        <p class="text-gray-600">
+          <span class="font-bold text-gray-800 text-lg">画像・PDF・Office・動画。「あらゆるファイル」を3秒で整理。</span><br>
+          商品画像から、請求書、プレゼン資料、動画素材まで。<br>
+          面倒なリネーム作業を一括自動化し、ブラウザ完結で<span class="font-bold text-blue-600">機密データも安全</span>に処理します。
+        </p>
       </div>
       <!-- Auth & Plan Badge -->
       <div class="flex flex-col items-end gap-2">
@@ -86,6 +91,75 @@
       </div>
     </header>
 
+    <!-- Hero Section -->
+    <section class="mb-8 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div class="md:flex">
+        <!-- Left Column: Before/After Image -->
+        <div class="md:w-1/2 bg-gray-50 p-6 flex items-center justify-center">
+          <img src="hero-image.png" 
+               alt="画像・PDFを一括整理するビフォーアフター" 
+               class="w-full max-w-md rounded-lg shadow-md">
+        </div>
+        
+        <!-- Right Column: Catch Copy & Benefits -->
+        <div class="md:w-1/2 p-6 md:p-8 flex flex-col justify-center">
+          <h2 class="text-2xl font-bold text-gray-900 mb-4">バラバラのファイル名を、3秒で整理。</h2>
+          <ul class="space-y-3 mb-4">
+            <li class="flex items-start gap-2">
+              <span class="text-green-500 text-lg">✅</span>
+              <span class="text-gray-700">画像・PDFをドラッグ＆ドロップで一括変換</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-green-500 text-lg">✅</span>
+              <span class="text-gray-700">連番、日付、接頭辞などルールは自由自在</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-green-500 text-lg">✅</span>
+              <span class="text-gray-700"><strong>完全ローカル処理</strong>。ファイルはサーバーに送信されず、情報漏洩のリスクがありません</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-green-500 text-lg">✅</span>
+              <span class="text-gray-700">インストール不要で、今すぐ使えます</span>
+            </li>
+          </ul>
+          
+          <!-- Mini Drop Zone -->
+          <div class="drop-zone-target mt-4 border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:border-blue-400 hover:bg-gray-50 transition flex flex-col items-center justify-center bg-white">
+            <p class="drop-zone-text text-xs text-gray-500 font-medium">ここにファイルをドロップ</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Security Assurance Section -->
+    <section class="mb-8 bg-green-50 border border-green-200 rounded-xl p-6 flex flex-col md:flex-row items-center gap-6">
+      <div class="flex-shrink-0 bg-white p-4 rounded-full shadow-sm">
+        <svg class="w-12 h-12 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+        </svg>
+      </div>
+      <div class="flex-grow">
+        <h3 class="text-lg font-bold text-green-900 mb-2">機密文書も安心の「完全ローカル処理」</h3>
+        <p class="text-sm text-green-800 leading-relaxed">
+          当ツールは、JavaScript技術により<span class="font-bold underline">すべての処理をお客様のブラウザ（端末内）だけで完結</span>させます。<br>
+          画像やPDFなどのファイルデータが、外部のサーバーに送信・保存されることは技術的に一切ありません。<br>
+          社外秘の契約書や、プライベートな写真も、安心してご利用いただけます。
+        </p>
+      </div>
+    </section>
+
+    <!-- Drop Zone -->
+    <section class="mb-8">
+      <div id="dropZone" class="drop-zone-target border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-blue-400 hover:bg-gray-50 transition flex flex-col items-center justify-center h-32">
+        <p class="drop-zone-text text-gray-500 font-medium">ファイルをここにドラッグ＆ドロップ</p>
+        <input type="file" id="fileInput" class="hidden" multiple>
+      </div>
+      <p class="text-xs text-center text-gray-400 mt-2 flex items-center justify-center gap-1">
+        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+        アップロードされたファイルはネットワークを経由せず、あなたの端末内でのみ処理されます
+      </p>
+    </section>
+
     <!-- User Guide (New) -->
     <section class="mb-8 bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r text-sm text-blue-900">
       <h3 class="font-bold text-lg mb-2 flex items-center">
@@ -97,13 +171,23 @@
       </h3>
       <ol class="list-decimal list-inside space-y-1 ml-1 mb-4">
         <li><span class="font-semibold">リネーム設定</span>を入力します（先頭・末尾文字、連番のルールなど）。</li>
-        <li>画像を <span class="font-semibold">ドロップゾーン</span> にドラッグ＆ドロップしてアップロードします。</li>
-        <li>画像の順番は、<span class="font-semibold">ドラッグ</span> または <span class="font-semibold">No.の手入力</span> で変更できます。</li>
-        <li>個別に名前を指定したい場合は、画像右側の「手入力」を選択して入力します。</li>
-        <li><span class="font-semibold">「ZIP作成＆ダウンロード」</span>ボタンを押して完了です。</li>
+        <li>ファイルを <span class="font-semibold">ドロップゾーン</span> にドラッグ＆ドロップしてアップロードします。</li>
+        <li>ファイルの順番は、<span class="font-semibold">ドラッグ</span> または <span class="font-semibold">No.の手入力</span> で変更できます。</li>
+        <li>個別に名前を指定したい場合は、ファイル右側の「手入力」を選択して入力します。</li>
+        <li><span class="font-semibold">「ダウンロード」</span>ボタンを押して完了です。</li>
       </ol>
+      <div class="mt-4 bg-yellow-50 border-l-4 border-yellow-400 p-3 text-yellow-800 text-xs">
+        <p class="font-bold flex items-center mb-1">
+          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+          Web画像の直接ドロップについて
+        </p>
+        <p>
+          Webサイト上の画像を直接ドラッグ＆ドロップで追加できますが、サイトのセキュリティ設定（CORS）によっては読み込めない場合があります。<br>
+          エラーが出る場合は、一度パソコンに画像を保存してからアップロードしてください。
+        </p>
+      </div>
       <div class="pt-4 border-t border-blue-200 text-xs text-blue-800">
-        <p class="mb-1"><span class="font-bold">対応拡張子:</span> .jpg, .jpeg, .png, .gif, .webp</p>
+        <p class="mb-1"><span class="font-bold">対応拡張子:</span> すべてのファイル形式（jpg, png, pdf, xlsx, docx, mp4, movなど）</p>
         <p><span class="font-bold">推奨環境:</span> Google Chrome, Edge, Firefox, Safari (最新版)</p>
       </div>
     </section>
@@ -173,8 +257,18 @@
       </div>
     </section>
 
+    <!-- Additional Drop Zone -->
+    <section class="mb-8">
+      <div class="drop-zone-target border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-blue-400 hover:bg-gray-50 transition flex flex-col items-center justify-center bg-white shadow-sm">
+        <p class="drop-zone-text text-gray-500 font-medium flex items-center justify-center gap-2">
+          <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+          ここにファイルを追加（ドラッグ＆ドロップ）
+        </p>
+      </div>
+    </section>
+
     <!-- Settings Section -->
-    <section class="mb-8 bg-gray-50 p-6 rounded-lg border border-gray-200">
+    <section id="renameSettings" class="mb-8 bg-gray-50 p-6 rounded-lg border border-gray-200">
       <h3 class="text-lg font-bold text-gray-800 mb-4">リネーム設定</h3>
       <div class="grid gap-6 md:grid-cols-4 items-end">
 
@@ -196,6 +290,14 @@
             <option value="alphabet-upper">英字 大文字 (A, B...)</option>
             <option value="alphabet-lower">英字 小文字 (a, b...)</option>
           </select>
+        </div>
+
+        <!-- Start Number -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">開始番号</label>
+          <input type="number" id="startNumber" value="1" min="0"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+            oninput="updateFilenames()">
         </div>
 
         <!-- Min Digits -->
@@ -225,29 +327,34 @@
       </div>
     </section>
 
-    <!-- Drop Zone -->
-    <section class="mb-8">
-      <div id="dropZone"
-        class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-blue-400 hover:bg-gray-50 transition flex flex-col items-center justify-center h-32">
-        <p class="text-gray-500 font-medium">画像ファイルをここにドラッグ＆ドロップ</p>
-        <input type="file" id="fileInput" class="hidden" multiple accept="image/*">
-      </div>
-    </section>
-
     <!-- Management Section -->
     <section class="mb-8">
       <div class="flex justify-between items-center mb-4">
-        <h2 class="text-xl font-bold text-gray-800">画像リスト <span id="imageCount"
-            class="text-sm font-normal text-gray-500 ml-2">(0枚)</span></h2>
+        <h2 class="text-xl font-bold text-gray-800">ファイルリスト <span id="imageCount"
+            class="text-sm font-normal text-gray-500 ml-2">(0点)</span></h2>
         <div class="flex items-center gap-3">
-          <button onclick="downloadZip()"
-            class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transform active:scale-95 transition flex items-center text-sm">
-            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-            </svg>
-            ZIP作成＆ダウンロード
-          </button>
+          <div class="flex items-center gap-2">
+            <select id="downloadFormat" class="text-xs px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
+              <option value="zip">ZIPにまとめて保存</option>
+              <option value="individual">そのままダウンロード</option>
+            </select>
+            <div class="flex items-center gap-1">
+              <button onclick="downloadFiles()"
+                class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transform active:scale-95 transition flex items-center text-sm">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                </svg>
+                ダウンロード
+              </button>
+              <div id="downloadFormatNotice" class="hidden flex items-center gap-1 text-xs text-gray-500 ml-1">
+                <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span>複数ファイルの保存許可が必要です</span>
+              </div>
+            </div>
+          </div>
           <button onclick="clearAll()"
             class="text-red-500 hover:text-red-700 text-sm font-medium hover:underline">全削除</button>
         </div>
@@ -258,21 +365,37 @@
       </div>
 
       <div id="emptyState" class="text-center py-12 bg-gray-50 rounded-lg border border-gray-200">
-        <p class="text-gray-400">画像がありません</p>
+        <p class="text-gray-400">ファイルがありません</p>
       </div>
     </section>
 
     <!-- Output Section -->
     <section class="border-t pt-6">
       <div class="flex flex-col items-end gap-2">
-        <button onclick="downloadZip()"
-          class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg shadow-lg transform active:scale-95 transition flex items-center">
-          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-          </svg>
-          ZIP作成＆ダウンロード
-        </button>
+        <div class="flex flex-col items-end gap-2">
+          <div class="flex items-center gap-3">
+            <select id="downloadFormatBottom" class="text-sm px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
+              <option value="zip">ZIPにまとめて保存</option>
+              <option value="individual">そのままダウンロード</option>
+            </select>
+            <div class="flex items-center gap-1">
+              <button onclick="downloadFiles()"
+                class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg shadow-lg transform active:scale-95 transition flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                </svg>
+                ダウンロード
+              </button>
+              <div id="downloadFormatNoticeBottom" class="hidden flex items-center gap-1 text-xs text-gray-500 ml-1">
+                <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span>複数ファイルの保存許可が必要です</span>
+              </div>
+            </div>
+          </div>
+        </div>
         <!-- CTA Link (changes based on login state) -->
         <p id="ctaLink" class="text-xs text-gray-500">
           <a href="#" onclick="openLoginModal()" class="text-blue-500 hover:underline">ログインすると履歴が保存されます</a>
@@ -468,6 +591,10 @@
         <button onclick="openContactModal()" class="text-xs text-gray-400 hover:text-blue-500 underline transition">
           お問い合わせ
         </button>
+        <span class="text-xs text-gray-400">|</span>
+        <a href="privacy.html" class="text-xs text-gray-400 hover:text-blue-500 underline transition">
+          プライバシーポリシー
+        </a>
       </div>
       <p class="text-[10px] text-gray-300 mt-2">© 2024 Flexible Image Renamer</p>
     </footer>
@@ -1780,40 +1907,278 @@
       }
     });
 
-    const dropZone = document.getElementById('dropZone');
     const fileInput = document.getElementById('fileInput');
+    const dropZones = document.querySelectorAll('.drop-zone-target');
 
-    dropZone.addEventListener('click', () => {
-      fileInput.click();
+    // Add event listeners to all drop zones
+    dropZones.forEach(dropZone => {
+      dropZone.addEventListener('click', () => {
+        fileInput.click();
+      });
+
+      dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('drag-over');
+      });
+
+      dropZone.addEventListener('dragleave', () => {
+        dropZone.classList.remove('drag-over');
+      });
+
+      dropZone.addEventListener('drop', async (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('drag-over');
+        
+        // Get the text element for this specific drop zone
+        const dropZoneText = dropZone.querySelector('.drop-zone-text');
+        const originalText = dropZoneText ? dropZoneText.textContent : '';
+        
+        // Check if files were dropped (local files)
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+          handleFiles(e.dataTransfer.files);
+          return;
+        }
+
+        // Check if URL/image was dropped (web image)
+        const url = e.dataTransfer.getData('text/uri-list') || e.dataTransfer.getData('text/html');
+        if (url) {
+          // Extract image URL from HTML if needed
+          let imageUrl = url;
+          if (url.includes('<img')) {
+            const imgMatch = url.match(/src=["']([^"']+)["']/i);
+            if (imgMatch) {
+              imageUrl = imgMatch[1];
+            } else {
+              return; // Could not extract URL
+            }
+          }
+
+          // Validate if it's an image URL
+          if (!imageUrl.match(/\.(jpg|jpeg|png|gif|webp)(\?|$)/i) && !imageUrl.startsWith('data:image/')) {
+            // Try to fetch and check content type
+            try {
+              const response = await fetch(imageUrl, { method: 'HEAD', mode: 'no-cors' });
+              // If we can't check, proceed anyway
+            } catch (err) {
+              // Continue to try fetching
+            }
+          }
+
+          // Update drop zone text for this specific drop zone
+          if (dropZoneText) {
+            dropZoneText.textContent = 'Web画像を読み込み中...';
+          }
+
+          try {
+          // Fetch the image
+          const response = await fetch(imageUrl);
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          const blob = await response.blob();
+          
+          // Check if it's an image
+          if (!blob.type.startsWith('image/')) {
+            throw new Error('Not an image file');
+          }
+
+          // Convert blob to File object
+          // Remove query parameters and fragments from URL
+          const urlWithoutParams = imageUrl.split('?')[0].split('#')[0];
+          
+          // Extract filename from clean URL
+          let fileName = urlWithoutParams.split('/').pop() || '';
+          
+          // Helper function to get extension from MIME type
+          const getExtensionFromMimeType = (mimeType) => {
+            const mimeMap = {
+              'image/jpeg': 'jpg',
+              'image/jpg': 'jpg',
+              'image/png': 'png',
+              'image/gif': 'gif',
+              'image/webp': 'webp',
+              'image/svg+xml': 'svg',
+              'image/bmp': 'bmp',
+              'image/tiff': 'tiff',
+            };
+            return mimeMap[mimeType] || 'jpg';
+          };
+          
+          // Validate filename and add extension if needed
+          if (!fileName || !fileName.includes('.')) {
+            // Filename is invalid or has no extension
+            const extension = getExtensionFromMimeType(blob.type);
+            fileName = `web-image.${extension}`;
+          } else {
+            // Filename exists, but ensure it has a valid extension
+            const fileExtension = fileName.split('.').pop().toLowerCase();
+            const validExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp', 'tiff'];
+            if (!validExtensions.includes(fileExtension)) {
+              // Invalid extension, replace with one from MIME type
+              const extension = getExtensionFromMimeType(blob.type);
+              const nameWithoutExt = fileName.substring(0, fileName.lastIndexOf('.'));
+              fileName = nameWithoutExt ? `${nameWithoutExt}.${extension}` : `web-image.${extension}`;
+            }
+          }
+          
+          const file = new File([blob], fileName, { type: blob.type || `image/${getExtensionFromMimeType(blob.type)}` });
+
+          // Create a FileList-like object
+          const dataTransfer = new DataTransfer();
+          dataTransfer.items.add(file);
+          const fileList = dataTransfer.files;
+
+          // Handle the file
+          handleFiles(fileList);
+        } catch (error) {
+          console.error('Error loading web image:', error);
+          alert('セキュリティ制限により、このWeb画像を読み込めませんでした。\n\n画像を一度パソコンに保存してからアップロードしてください。');
+          } finally {
+            // Restore original text for this specific drop zone
+            if (dropZoneText) {
+              dropZoneText.textContent = originalText || 'ファイルをここにドラッグ＆ドロップ';
+            }
+          }
+          return;
+        }
+
+        // If neither files nor URL, do nothing
+      });
     });
 
     fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
-    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
-    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
-
-    dropZone.addEventListener('drop', (e) => {
-      e.preventDefault();
-      dropZone.classList.remove('drag-over');
-      handleFiles(e.dataTransfer.files);
-    });
 
     function handleFiles(files) {
-      const validFiles = Array.from(files).filter(file => file.type.startsWith('image/'));
-      if (validFiles.length === 0) return;
-      validFiles.forEach(file => {
+      if (files.length === 0) return;
+      Array.from(files).forEach(file => {
         const id = Math.random().toString(36).substr(2, 9);
-        const reader = new FileReader();
-        reader.onload = (e) => addImageToUI(id, file, e.target.result);
-        reader.readAsDataURL(file);
+        if (file.type.startsWith('image/')) {
+          // 画像の場合はFileReaderで読み込んで追加
+          const reader = new FileReader();
+          reader.onload = (e) => addFileToUI(id, file, e.target.result);
+          reader.readAsDataURL(file);
+        } else {
+          // その他のファイルはアイコン表示のみ
+          addFileToUI(id, file, null);
+        }
       });
+      
+      // Scroll to settings section for better UX
+      if (files.length > 0) {
+        setTimeout(() => {
+          const settingsSection = document.getElementById('renameSettings');
+          if (settingsSection) {
+            settingsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 100); // わずかな遅延を入れて自然な動作にする
+      }
     }
 
-    function addImageToUI(id, file, src) {
+    function addFileToUI(id, file, src) {
       const template = document.getElementById('imageItemTemplate');
       const clone = template.content.cloneNode(true);
       const root = clone.querySelector('.image-item');
       root.setAttribute('data-id', id);
-      root.querySelector('img').src = src;
+      
+      const imgElement = root.querySelector('img');
+      const thumbnailContainer = imgElement.closest('div');
+      
+      // ファイルタイプに応じてアイコンを表示
+      if (file.type.startsWith('image/') && src) {
+        // 画像の場合はプレビュー画像を表示
+        imgElement.src = src;
+      } else {
+        // その他のファイルはアイコン表示
+        imgElement.style.display = 'none';
+        const fileIcon = document.createElement('div');
+        fileIcon.className = 'w-20 h-20 rounded-md flex items-center justify-center border flex-shrink-0';
+        
+        // ファイルタイプに応じてアイコンと色を決定
+        let iconHtml = '';
+        let bgColor = '';
+        let borderColor = '';
+        let textColor = '';
+        let fileTypeLabel = '';
+        
+        if (file.type === 'application/pdf') {
+          // PDF
+          bgColor = 'bg-red-100';
+          borderColor = 'border-red-200';
+          textColor = 'text-red-600';
+          fileTypeLabel = 'PDF';
+          iconHtml = `
+            <svg class="w-10 h-10 mx-auto ${textColor} mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+            </svg>
+          `;
+        } else if (file.type.startsWith('video/')) {
+          // 動画
+          bgColor = 'bg-purple-100';
+          borderColor = 'border-purple-200';
+          textColor = 'text-purple-600';
+          fileTypeLabel = '動画';
+          iconHtml = `
+            <svg class="w-10 h-10 mx-auto ${textColor} mb-1" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M8 5v14l11-7z"></path>
+            </svg>
+          `;
+        } else if (file.name.match(/\.(xlsx|xls|csv)$/i) || file.type.includes('spreadsheet') || file.type.includes('excel')) {
+          // Excel/CSV
+          bgColor = 'bg-green-100';
+          borderColor = 'border-green-200';
+          textColor = 'text-green-600';
+          fileTypeLabel = 'Excel';
+          iconHtml = `
+            <svg class="w-10 h-10 mx-auto ${textColor} mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+            </svg>
+          `;
+        } else if (file.name.match(/\.(docx|doc)$/i) || file.type.includes('word') || file.type.includes('document')) {
+          // Word
+          bgColor = 'bg-blue-100';
+          borderColor = 'border-blue-200';
+          textColor = 'text-blue-600';
+          fileTypeLabel = 'Word';
+          iconHtml = `
+            <svg class="w-10 h-10 mx-auto ${textColor} mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+          `;
+        } else if (file.name.match(/\.(pptx|ppt)$/i) || file.type.includes('presentation') || file.type.includes('powerpoint')) {
+          // PowerPoint
+          bgColor = 'bg-orange-100';
+          borderColor = 'border-orange-200';
+          textColor = 'text-orange-600';
+          fileTypeLabel = 'PPT';
+          iconHtml = `
+            <svg class="w-10 h-10 mx-auto ${textColor} mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
+            </svg>
+          `;
+        } else {
+          // その他
+          bgColor = 'bg-gray-100';
+          borderColor = 'border-gray-200';
+          textColor = 'text-gray-600';
+          fileTypeLabel = 'ファイル';
+          iconHtml = `
+            <svg class="w-10 h-10 mx-auto ${textColor} mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+            </svg>
+          `;
+        }
+        
+        fileIcon.className = `w-20 h-20 ${bgColor} rounded-md flex items-center justify-center ${borderColor} border flex-shrink-0`;
+        fileIcon.innerHTML = `
+          <div class="text-center">
+            ${iconHtml}
+            <span class="text-xs font-bold ${textColor}">${fileTypeLabel}</span>
+          </div>
+        `;
+        thumbnailContainer.appendChild(fileIcon);
+      }
+      
       root.querySelector('.original-name').textContent = `元ファイル: ${file.name}`;
       const radios = root.querySelectorAll('input[type="radio"]');
       radios.forEach(radio => radio.name = `mode-${id}`);
@@ -1842,7 +2207,7 @@
     }
 
     function clearAll() {
-      if (!confirm('全ての画像を削除しますか？')) return;
+      if (!confirm('全てのファイルを削除しますか？')) return;
       listContainer.innerHTML = '';
       imageData = [];
       document.getElementById('fileInput').value = ''; // Reset file input
@@ -1943,6 +2308,8 @@
       let minDigits = parseInt(document.getElementById('minDigits').value) || 1;
       if (minDigits < 1) minDigits = 1;
       if (minDigits > 12) minDigits = 12;
+      let startNumber = parseInt(document.getElementById('startNumber').value) || 1;
+      if (startNumber < 0) startNumber = 0;
 
       let counter = 0;
 
@@ -1960,15 +2327,22 @@
           core = img.customText;
         } else {
           if (seqType === 'number') {
-            let numStr = (counter + 1).toString();
+            let numStr = (counter + startNumber).toString();
             if (numStr.length < minDigits) {
               numStr = numStr.padStart(minDigits, '0');
             }
             core = numStr;
           } else {
-            core = toAlpha(counter);
-            if (seqType === 'alphabet-lower') {
-              core = core.toLowerCase();
+            // 開始番号1ならA、2ならB...になるように調整（toAlphaは0ベースなので-1）
+            const alphaIndex = counter + startNumber - 1;
+            let alphaResult = toAlpha(alphaIndex < 0 ? 0 : alphaIndex);
+            // 連番タイプに応じて大文字・小文字を適用
+            if (seqType === 'alphabet-upper') {
+              core = alphaResult.toUpperCase();
+            } else if (seqType === 'alphabet-lower') {
+              core = alphaResult.toLowerCase();
+            } else {
+              core = alphaResult; // フォールバック（通常は到達しない）
             }
           }
           counter++;
@@ -1991,14 +2365,24 @@
       let minDigits = parseInt(document.getElementById('minDigits').value) || 3;
       if (minDigits < 1) minDigits = 1;
       if (minDigits > 12) minDigits = 12;
+      let startNumber = parseInt(document.getElementById('startNumber').value) || 1;
+      if (startNumber < 0) startNumber = 0;
 
       let core = '';
       if (seqType === 'number') {
-        core = '1'.padStart(minDigits, '0');
-      } else if (seqType === 'alphabet-upper') {
-        core = 'A';
+        core = startNumber.toString().padStart(minDigits, '0');
       } else {
-        core = 'a';
+        // 開始番号1ならA/a、2ならB/b...になるように調整（toAlphaは0ベースなので-1）
+        const alphaIndex = startNumber - 1;
+        let alphaResult = toAlpha(alphaIndex < 0 ? 0 : alphaIndex);
+        // 連番タイプに応じて大文字・小文字を適用
+        if (seqType === 'alphabet-upper') {
+          core = alphaResult.toUpperCase();
+        } else if (seqType === 'alphabet-lower') {
+          core = alphaResult.toLowerCase();
+        } else {
+          core = alphaResult; // フォールバック（通常は到達しない）
+        }
       }
 
       const preview = `${prefix}${core}${suffix}.jpg`;
@@ -2007,11 +2391,58 @@
     }
 
     // Initialize preview on load
+    // ページ読み込み時にプレビューを確実に表示（開始番号1、最小桁数3で001と表示）
     updatePreview();
+    
+    // 画像が既に読み込まれている場合も更新
+    if (imageData.length > 0) {
+      updateFilenames();
+    }
+    
+    // Sync download format select boxes
+    syncDownloadFormat();
 
-    async function downloadZip() {
+    // Sync download format select boxes
+    function syncDownloadFormat() {
+      const formatTop = document.getElementById('downloadFormat');
+      const formatBottom = document.getElementById('downloadFormatBottom');
+      const noticeTop = document.getElementById('downloadFormatNotice');
+      const noticeBottom = document.getElementById('downloadFormatNoticeBottom');
+      
+      if (formatTop && formatBottom) {
+        // Sync both select boxes
+        formatTop.addEventListener('change', () => {
+          formatBottom.value = formatTop.value;
+          updateDownloadNotice();
+        });
+        formatBottom.addEventListener('change', () => {
+          formatTop.value = formatBottom.value;
+          updateDownloadNotice();
+        });
+      }
+      
+      updateDownloadNotice();
+    }
+    
+    function updateDownloadNotice() {
+      const formatTop = document.getElementById('downloadFormat')?.value || 'zip';
+      const formatBottom = document.getElementById('downloadFormatBottom')?.value || 'zip';
+      const format = formatTop || formatBottom || 'zip';
+      const noticeTop = document.getElementById('downloadFormatNotice');
+      const noticeBottom = document.getElementById('downloadFormatNoticeBottom');
+      
+      if (format === 'individual') {
+        if (noticeTop) noticeTop.classList.remove('hidden');
+        if (noticeBottom) noticeBottom.classList.remove('hidden');
+      } else {
+        if (noticeTop) noticeTop.classList.add('hidden');
+        if (noticeBottom) noticeBottom.classList.add('hidden');
+      }
+    }
+
+    async function downloadFiles() {
       if (imageData.length === 0) {
-        alert('画像を追加してください。');
+        alert('ファイルを追加してください。');
         return;
       }
 
@@ -2036,7 +2467,12 @@
         }
       }
 
-      const zip = new JSZip();
+      // Get download format
+      const downloadFormat = document.getElementById('downloadFormat')?.value || 
+                            document.getElementById('downloadFormatBottom')?.value || 
+                            'zip';
+
+      // Check for duplicate filenames
       const usedNames = new Set();
       for (const img of imageData) {
         if (usedNames.has(img.finalName)) {
@@ -2046,18 +2482,31 @@
         usedNames.add(img.finalName);
       }
 
-      const btn = document.querySelector('button[onclick="downloadZip()"]');
-      const originalText = btn.innerHTML;
-      btn.innerHTML = '処理中...';
-      btn.disabled = true;
+      const btn = document.querySelector('button[onclick="downloadFiles()"]');
+      const originalText = btn ? btn.innerHTML : '';
+      if (btn) {
+        btn.innerHTML = '処理中...';
+        btn.disabled = true;
+      }
 
       try {
-        for (const img of imageData) {
-          zip.file(img.finalName, img.file);
+        if (downloadFormat === 'zip') {
+          // ZIP形式でダウンロード
+          const zip = new JSZip();
+          for (const img of imageData) {
+            zip.file(img.finalName, img.file);
+          }
+          const content = await zip.generateAsync({ type: "blob" });
+          const zipName = document.getElementById('prefix').value ? `${document.getElementById('prefix').value}_files.zip` : 'files.zip';
+          saveAs(content, zipName);
+        } else {
+          // 個別ファイルとしてダウンロード
+          for (const img of imageData) {
+            saveAs(img.file, img.finalName);
+            // 少し待機してから次のファイルをダウンロード（ブラウザの通知を避けるため）
+            await new Promise(resolve => setTimeout(resolve, 100));
+          }
         }
-        const content = await zip.generateAsync({ type: "blob" });
-        const zipName = document.getElementById('prefix').value ? `${document.getElementById('prefix').value}_images.zip` : 'images.zip';
-        saveAs(content, zipName);
 
         // Update Usage
         if (currentUser) {
@@ -2068,11 +2517,24 @@
 
       } catch (e) {
         console.error(e);
-        alert('ZIP作成中にエラーが発生しました。');
+        alert('ダウンロード中にエラーが発生しました。');
       } finally {
-        btn.innerHTML = originalText;
-        btn.disabled = false;
+        if (btn) {
+          btn.innerHTML = originalText;
+          btn.disabled = false;
+        }
       }
+    }
+
+    // Legacy function for backward compatibility
+    async function downloadZip() {
+      // Set format to zip and call downloadFiles
+      const formatTop = document.getElementById('downloadFormat');
+      const formatBottom = document.getElementById('downloadFormatBottom');
+      if (formatTop) formatTop.value = 'zip';
+      if (formatBottom) formatBottom.value = 'zip';
+      updateDownloadNotice();
+      await downloadFiles();
     }
   </script>
 </body>

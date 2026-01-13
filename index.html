@@ -203,7 +203,7 @@
 
     <!-- Pricing Section -->
     <section id="pricing" class="mb-8">
-      <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
+      <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center" data-i18n="pricing_title">
         <svg class="w-5 h-5 mr-2 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
           <path
             d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
@@ -213,22 +213,22 @@
       <div class="grid md:grid-cols-2 gap-6">
         <!-- Free Plan -->
         <div class="bg-white border border-gray-200 rounded-xl p-6 relative">
-          <h4 class="text-xl font-bold text-gray-800 mb-2">Free / ゲストプラン</h4>
+          <h4 class="text-xl font-bold text-gray-800 mb-2" data-i18n="plan_free_name">Free / ゲストプラン</h4>
           <p class="text-3xl font-bold text-gray-900 mb-4">¥0<span class="text-sm font-normal text-gray-500"> / 月</span>
           </p>
           <ul class="text-sm text-gray-600 space-y-2 mb-6">
             <li class="flex items-center"><svg class="w-4 h-4 mr-2 text-green-500" fill="none" stroke="currentColor"
                 viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-              </svg>1日20枚まで利用可能</li>
+              </svg><span data-i18n="plan_free_feat1">1日20枚まで利用可能</span></li>
             <li class="flex items-center"><svg class="w-4 h-4 mr-2 text-green-500" fill="none" stroke="currentColor"
                 viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-              </svg>基本的なリネーム・ZIP化</li>
+              </svg><span data-i18n="plan_free_feat2">基本的なリネーム・ZIP化</span></li>
             <li class="flex items-center"><svg class="w-4 h-4 mr-2 text-gray-300" fill="none" stroke="currentColor"
                 viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-              </svg><span class="text-gray-400">回数制限あり</span></li>
+              </svg><span class="text-gray-400" data-i18n="plan_free_feat3">回数制限あり</span></li>
           </ul>
           <button id="freePlanBtn" onclick="openLoginModal()"
             class="w-full py-2 px-4 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition">
@@ -239,24 +239,24 @@
         <div
           class="bg-gradient-to-br from-blue-50 to-purple-50 border-2 border-blue-400 rounded-xl p-6 relative shadow-lg">
           <span
-            class="absolute -top-3 left-4 bg-gradient-to-r from-orange-500 to-pink-500 text-white text-xs font-bold px-3 py-1 rounded-full">✨
+            class="absolute -top-3 left-4 bg-gradient-to-r from-orange-500 to-pink-500 text-white text-xs font-bold px-3 py-1 rounded-full" data-i18n="plan_premium_rec">✨
             おすすめ</span>
-          <h4 class="text-xl font-bold text-gray-800 mb-2 mt-2">Premium Plan</h4>
+          <h4 class="text-xl font-bold text-gray-800 mb-2 mt-2" data-i18n="plan_premium_name">Premium Plan</h4>
           <p class="text-3xl font-bold text-blue-600 mb-4">¥990<span class="text-sm font-normal text-gray-500"> / 月
               (税込)</span></p>
           <ul class="text-sm text-gray-700 space-y-2 mb-6">
             <li class="flex items-center"><svg class="w-4 h-4 mr-2 text-blue-500" fill="none" stroke="currentColor"
                 viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-              </svg><span class="font-bold text-blue-700">回数無制限</span></li>
+              </svg><span class="font-bold text-blue-700" data-i18n="plan_premium_feat1">回数無制限</span></li>
             <li class="flex items-center"><svg class="w-4 h-4 mr-2 text-blue-500" fill="none" stroke="currentColor"
                 viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-              </svg>業務効率化に最適</li>
+              </svg><span data-i18n="plan_premium_feat2">業務効率化に最適</span></li>
             <li class="flex items-center"><svg class="w-4 h-4 mr-2 text-blue-500" fill="none" stroke="currentColor"
                 viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-              </svg>優先サポート</li>
+              </svg><span data-i18n="plan_premium_feat3">優先サポート</span></li>
           </ul>
           <button id="premiumCTA" onclick="handlePremiumCTA()"
             class="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg font-bold shadow-lg transition transform hover:scale-105">
@@ -803,6 +803,201 @@
   </template>
 
   <script>
+    // --- i18n Configuration ---
+    const translations = {
+      ja: {
+        // --- Meta & Header ---
+        meta_title: "あらゆるファイルを一括リネーム！ブラウザ完結・インストール不要｜Flexible Renamer",
+        meta_desc: "画像、PDF、Office書類、動画まで。ドラッグ＆ドロップで一括変換。サーバー送信なしで安全です。",
+        header_subtitle: "画像・PDF・Office・動画。「あらゆるファイル」を3秒で整理。",
+        header_desc: "商品画像から請求書まで。<br>面倒なリネーム作業を一括自動化し、ブラウザ完結で<span class='font-bold text-blue-600'>機密データも安全</span>に処理します。",
+        btn_login: "ログイン",
+        btn_guest: "ゲスト利用中",
+        btn_unlimited: "🚀 無制限へ",
+        
+        // --- Hero & Main ---
+        hero_title: "バラバラのファイル名を、3秒で整理。",
+        hero_li1: "画像・PDF・Office・動画を一括変換",
+        hero_li2: "連番、日付、接頭辞などルールは自由自在",
+        hero_li3: "完全ローカル処理。情報漏洩のリスクなし",
+        hero_li4: "インストール不要で、今すぐ使えます",
+        drop_text_mini: "ここにファイルをドロップ",
+        drop_text_main: "ファイルをここにドラッグ＆ドロップ",
+        drop_text_sub: "アップロードされたファイルはネットワークを経由せず、端末内でのみ処理されます",
+        
+        // --- Settings ---
+        settings_title: "リネーム設定",
+        label_prefix: "先頭文字列 (固定)",
+        label_seq: "連番タイプ",
+        label_start: "開始番号",
+        label_digit: "最小桁数",
+        label_suffix: "末尾文字列 (固定)",
+        label_preview: "出力ファイル名プレビュー:",
+        
+        // --- Pricing (Static) ---
+        pricing_title: "料金プラン",
+        plan_free_name: "Free / ゲストプラン",
+        plan_free_feat1: "1日20枚まで利用可能",
+        plan_free_feat2: "基本的なリネーム・ZIP化",
+        plan_free_feat3: "回数制限あり",
+        plan_premium_name: "Premium Plan",
+        plan_premium_rec: "✨ おすすめ",
+        plan_premium_feat1: "回数無制限",
+        plan_premium_feat2: "業務効率化に最適",
+        plan_premium_feat3: "優先サポート",
+
+        // --- Dynamic Buttons (Used in JS) ---
+        btn_login_use: "ログインして使う",
+        btn_using: "利用中",
+        btn_register_unlimited: "登録して無制限にする",
+        btn_current_plan: "現在契約中のプラン",
+        btn_upgrade: "プレミアムにアップグレード",
+        btn_manage_contract: "契約確認",
+        btn_change_plan: "プラン変更",
+        usage_unlimited: "無制限で利用可能",
+        usage_today: "本日利用数:",
+        
+        // --- Footer & Alerts ---
+        btn_download: "ダウンロード",
+        btn_clear: "全削除",
+        footer_legal: "特定商取引法に基づく表記",
+        footer_contact: "お問い合わせ",
+        footer_privacy: "プライバシーポリシー",
+        alert_no_files: "ファイルを追加してください。",
+        alert_duplicate: "エラー: ファイル名が重複しています"
+      },
+      en: {
+        // --- Meta & Header ---
+        meta_title: "Batch Rename Any Files! Secure & Browser-based | Flexible Renamer",
+        meta_desc: "Batch rename images, PDFs, Office docs, and videos. No server upload ensures 100% privacy.",
+        header_subtitle: "Images, PDFs, Office, Videos. Organize 'Any File' in 3 Seconds.",
+        header_desc: "From product images to invoices.<br>Automate renaming tasks in your browser with <span class='font-bold text-blue-600'>complete privacy & security</span>.",
+        btn_login: "Login",
+        btn_guest: "Guest Mode",
+        btn_unlimited: "🚀 Go Unlimited",
+        
+        // --- Hero & Main ---
+        hero_title: "Organize messy filenames in 3 seconds.",
+        hero_li1: "Batch convert Images, PDFs & Docs",
+        hero_li2: "Customize rules: Sequential numbers, Dates",
+        hero_li3: "100% Local Processing. Zero data leak risk",
+        hero_li4: "No installation required",
+        drop_text_mini: "Drop files here",
+        drop_text_main: "Drag & Drop files here",
+        drop_text_sub: "Files are processed locally and never sent to any server",
+        
+        // --- Settings ---
+        settings_title: "Rename Settings",
+        label_prefix: "Prefix (Fixed)",
+        label_seq: "Sequence Type",
+        label_start: "Start Number",
+        label_digit: "Min Digits",
+        label_suffix: "Suffix (Fixed)",
+        label_preview: "Output Preview:",
+        
+        // --- Pricing (Static) ---
+        pricing_title: "Pricing",
+        plan_free_name: "Free / Guest Plan",
+        plan_free_feat1: "Up to 20 files/day",
+        plan_free_feat2: "Basic renaming & ZIP",
+        plan_free_feat3: "Usage limit applies",
+        plan_premium_name: "Premium Plan",
+        plan_premium_rec: "✨ Recommended",
+        plan_premium_feat1: "Unlimited Usage",
+        plan_premium_feat2: "Best for Business",
+        plan_premium_feat3: "Priority Support",
+
+        // --- Dynamic Buttons (Used in JS) ---
+        btn_login_use: "Login to Use",
+        btn_using: "Active",
+        btn_register_unlimited: "Register for Unlimited",
+        btn_current_plan: "Current Plan",
+        btn_upgrade: "Upgrade to Premium",
+        btn_manage_contract: "Manage Plan",
+        btn_change_plan: "Upgrade",
+        usage_unlimited: "Unlimited Usage",
+        usage_today: "Used today:",
+        
+        // --- Footer & Alerts ---
+        btn_download: "Download",
+        btn_clear: "Clear All",
+        footer_legal: "Legal Information",
+        footer_contact: "Contact",
+        footer_privacy: "Privacy Policy",
+        alert_no_files: "Please add files.",
+        alert_duplicate: "Error: Duplicate filenames detected"
+      }
+    };
+
+    let currentLang = 'ja';
+
+    // 初期化: ブラウザ設定を確認
+    function initLanguage() {
+      const browserLang = navigator.language || navigator.userLanguage;
+      currentLang = browserLang.startsWith('ja') ? 'ja' : 'en';
+      updateLanguageUI();
+    }
+
+    // 言語切り替え
+    function toggleLanguage() {
+      currentLang = currentLang === 'ja' ? 'en' : 'ja';
+      updateLanguageUI();
+    }
+
+    // UI更新 (data-i18n属性を持つ要素を一括更新)
+    function updateLanguageUI() {
+      document.documentElement.lang = currentLang;
+      const t = translations[currentLang];
+
+      // 1. テキストの一括更新
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (t[key]) {
+          // SVGアイコンを含む要素（pricing_title）の場合は、SVGを保持してテキストのみ更新
+          if (key === 'pricing_title' && el.querySelector('svg')) {
+            const svg = el.querySelector('svg');
+            // SVG以外のテキストノードを削除
+            Array.from(el.childNodes).forEach(node => {
+              if (node.nodeType === Node.TEXT_NODE && node.textContent.trim()) {
+                node.remove();
+              }
+            });
+            // テキストを追加
+            el.appendChild(document.createTextNode(' ' + t[key]));
+          } else {
+            // HTMLタグを含む可能性があるため innerHTML を使用
+            el.innerHTML = t[key];
+          }
+        }
+      });
+
+      // 2. プレースホルダーの更新 (inputタグ用)
+      const inputPrefix = document.getElementById('prefix');
+      const inputSuffix = document.getElementById('suffix');
+      if (inputPrefix) inputPrefix.placeholder = currentLang === 'ja' ? '例: IMG_' : 'Ex: IMG_';
+      if (inputSuffix) inputSuffix.placeholder = currentLang === 'ja' ? '例: _v1' : 'Ex: _v1';
+
+      // 3. ボタンのラベル更新
+      const langLabel = document.getElementById('langLabel');
+      if (langLabel) langLabel.textContent = currentLang === 'ja' ? 'English' : '日本語';
+
+      // 4. メタデータの更新
+      document.title = t.meta_title;
+      const metaDesc = document.querySelector('meta[name="description"]');
+      if (metaDesc) metaDesc.setAttribute('content', t.meta_desc);
+
+      // 5. 動的要素の更新
+      updateHeaderUI();
+    }
+
+    // ページ読み込み時に実行
+    document.addEventListener('DOMContentLoaded', initLanguage);
+
+    // 辞書ヘルパー (JS内のアラート等で使用)
+    function t(key) {
+      return translations[currentLang][key] || key;
+    }
+
     let imageData = [];
     const listContainer = document.getElementById('imageList');
     let currentUser = null;
@@ -1472,15 +1667,15 @@
       if (currentUsage.is_premium) {
         planName.textContent = 'Premium Plan';
         planName.className = 'bg-yellow-100 text-yellow-800 font-bold px-3 py-1 rounded-full text-sm';
-        usageText.textContent = '無制限で利用可能';
+        usageText.textContent = t('usage_unlimited');
         // Premiumユーザーの場合は「契約確認」に変更
         if (planLink) {
-          planLink.textContent = '契約確認';
+          planLink.textContent = t('btn_manage_contract');
         }
       } else {
         planName.textContent = 'Free Plan';
         planName.className = 'bg-gray-200 text-gray-700 font-bold px-3 py-1 rounded-full text-sm';
-        usageText.textContent = `本日利用数: ${currentUsage.daily_count}/${FREE_LIMIT}`;
+        usageText.textContent = `${t('usage_today')} ${currentUsage.daily_count}/${FREE_LIMIT}`;
         if (currentUsage.daily_count >= FREE_LIMIT) {
           usageText.classList.add('text-red-500', 'font-bold');
         } else {
@@ -1488,7 +1683,7 @@
         }
         // 無料プランユーザーの場合は「プラン変更」に戻す
         if (planLink) {
-          planLink.textContent = 'プラン変更';
+          planLink.textContent = t('btn_change_plan');
         }
       }
       // Also update pricing section
@@ -1502,12 +1697,12 @@
 
       if (!currentUser) {
         // Guest mode
-        freeBtn.textContent = 'ログインして使う';
+        freeBtn.textContent = t('btn_login_use');
         freeBtn.disabled = false;
         freeBtn.onclick = openLoginModal;
         freeBtn.className = 'w-full py-2 px-4 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition';
 
-        premiumBtn.textContent = '登録して無制限にする';
+        premiumBtn.textContent = t('btn_register_unlimited');
         premiumBtn.disabled = false;
         premiumBtn.onclick = () => openSignupModal();
         premiumBtn.className = 'w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg font-bold shadow-lg transition transform hover:scale-105';
@@ -1518,18 +1713,18 @@
         freeBtn.onclick = null;
         freeBtn.className = 'w-full py-2 px-4 bg-gray-100 text-gray-400 rounded-lg font-medium cursor-not-allowed';
 
-        premiumBtn.textContent = '現在契約中のプラン';
+        premiumBtn.textContent = t('btn_current_plan');
         premiumBtn.disabled = true;
         premiumBtn.onclick = null;
         premiumBtn.className = 'w-full py-3 px-4 bg-green-500 text-white rounded-lg font-bold shadow-lg cursor-not-allowed';
       } else {
         // Free logged-in user
-        freeBtn.textContent = '利用中';
+        freeBtn.textContent = t('btn_using');
         freeBtn.disabled = true;
         freeBtn.onclick = null;
         freeBtn.className = 'w-full py-2 px-4 bg-blue-100 text-blue-700 rounded-lg font-medium cursor-not-allowed';
 
-        premiumBtn.textContent = 'プレミアムにアップグレード';
+        premiumBtn.textContent = t('btn_upgrade');
         premiumBtn.disabled = false;
         premiumBtn.onclick = () => openPremiumModal();
         premiumBtn.className = 'w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg font-bold shadow-lg transition transform hover:scale-105';

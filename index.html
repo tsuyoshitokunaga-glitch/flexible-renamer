@@ -3,6 +3,14 @@
 
 <head>
   <meta charset="UTF-8">
+  <script>
+    // ドメイン正規化: cloudrename.com 以外からのアクセスをリダイレクト
+    if (window.location.hostname !== 'cloudrename.com' && 
+        window.location.hostname !== 'localhost' && 
+        window.location.hostname !== '127.0.0.1') {
+      window.location.replace('https://cloudrename.com' + window.location.pathname + window.location.search);
+    }
+  </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="請求書・領収書・商品画像のファイル名を3秒で一括変更。電子帳簿保存法対応の命名規則にも。サーバーに送信しない完全ローカル処理で機密情報も安全。インストール不要・無料。">
   <title>ファイル名を一括変更｜請求書・画像・PDFのリネームツール【無料】CloudRename</title>
